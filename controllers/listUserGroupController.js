@@ -1,5 +1,4 @@
 const db = require("../models");
-const { permissionUser } = require("../middleware/getPermission");
 var IO = require("../app");
 
 const ListGroup = db.listusergroup;
