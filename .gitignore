@@ -1,0 +1,5 @@
+assets/images/
+public/images/
+public/users/
+node_modules/
+.wwebjs_auth/
