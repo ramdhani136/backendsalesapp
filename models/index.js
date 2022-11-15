@@ -31,10 +31,11 @@ db.callsheets = require("./callSheetModel")(sequelize, DataTypes);
 db.roleprofiles = require("./roleProfile")(sequelize, DataTypes);
 db.rolelists = require("./roleList")(sequelize, DataTypes);
 db.roleusers = require("./roleUser")(sequelize, DataTypes);
-db.taskvisit = require("./taskVisitModel")(sequelize, DataTypes);
 db.permission = require("./permissionModel")(sequelize, DataTypes);
 db.contact = require("./contactModel")(sequelize, DataTypes);
 db.notif = require("./notifModel")(sequelize, DataTypes);
+db.usergroup = require("./userGroup")(sequelize, DataTypes);
+db.lisyusergroup = require("./listUserGroup")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
@@ -189,6 +190,13 @@ db.permission.belongsTo(db.users, {
 db.permission.belongsTo(db.users, {
   foreignKey: "id_created",
   as: "created",
+});
+
+
+// usergroup
+db.usergroup.belongsTo(db.users, {
+  foreignKey: "id_created",
+  as: "user",
 });
 
 module.exports = db;

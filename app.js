@@ -73,6 +73,7 @@ const roleUserRoure = require("./routes/roleUserRoute");
 const permissionRoute = require("./routes/permissionRoute");
 const contactRoute = require("./routes/contactRoute");
 const notifRoute = require("./routes/notifRoute");
+const userGroupRoute = require("./routes/userGroupRoute");
 var myModul = require("./utils/waBot");
 
 // app.get("/coba", async (req, res) => {
@@ -132,6 +133,7 @@ app.use("/rolelist", verifyToken, PermissionData, roleListRoute);
 app.use("/roleuser", verifyToken, PermissionData, roleUserRoure);
 app.use("/permission", verifyToken, PermissionData, permissionRoute);
 app.use("/notif", verifyToken, PermissionData, notifRoute);
+app.use("/usergroup", verifyToken, PermissionData, userGroupRoute);
 app.get("*", function (req, res) {
   res.status(404).send("404 NOT FOUND");
 });

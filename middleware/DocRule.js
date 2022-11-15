@@ -50,6 +50,9 @@ const PermissionData = (req, res, next) => {
             case "/notif":
               return role.doc == "notif";
               break;
+            case "/usergroup":
+              return role.doc == "usergroup";
+              break;
           }
         });
 
