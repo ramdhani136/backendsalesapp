@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
         index: true,
         allowNull:false,
       },
-      uniq: { type: DataTypes.STRING, allowNull: false, unique: true },
     });
   
     return ListUserGroup;

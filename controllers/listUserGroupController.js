@@ -16,9 +16,8 @@ const newData = async (userId, type) => {
 
 const create = async (req, res) => {
   let data = {
-    id_userGroup: req.body.id_userGroup,
+    id_usergroup: req.body.id_usergroup,
     id_user: req.body.id_user,
-    uniq: req.body.id_userGroup.toString() + req.body.id_user.toString(),
   };
 
   try {
@@ -59,7 +58,6 @@ const getByGroup = async (req, res) => {
   IO.setEmit("listusergroup", await newData(req.userId, "usergroup"));
   res.send(data);
 };
-
 
 const getOne = async (req, res) => {
   let id = req.params.id;
@@ -134,5 +132,5 @@ module.exports = {
   getOne,
   update,
   deleteData,
-  getByGroup
+  getByGroup,
 };
