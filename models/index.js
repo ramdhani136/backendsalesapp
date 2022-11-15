@@ -35,7 +35,7 @@ db.permission = require("./permissionModel")(sequelize, DataTypes);
 db.contact = require("./contactModel")(sequelize, DataTypes);
 db.notif = require("./notifModel")(sequelize, DataTypes);
 db.usergroup = require("./userGroup")(sequelize, DataTypes);
-db.lisyusergroup = require("./listUserGroup")(sequelize, DataTypes);
+db.listusergroup = require("./listUserGroup")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
@@ -197,6 +197,17 @@ db.permission.belongsTo(db.users, {
 db.usergroup.belongsTo(db.users, {
   foreignKey: "id_created",
   as: "user",
+});
+
+// listusergroup
+db.listusergroup.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+db.listusergroup.belongsTo(db.usergroup, {
+  foreignKey: "id_usergroup",
+  as: "usergroup",
 });
 
 module.exports = db;

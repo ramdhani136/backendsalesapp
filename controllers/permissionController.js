@@ -97,6 +97,7 @@ const getOneData = async (req, res) => {
 };
 
 const updateData = async (req, res) => {
+  
   let id = req.params.id;
   const isUser = await permissionUser(req.userId, "permission");
   const isWhere = [isUser.length > 0 && { id_user: isUser }, { id: id }];
