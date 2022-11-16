@@ -6,6 +6,7 @@ router.post("/", controller.create);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.get("/group/:id", controller.getByGroup);
+router.get("/user/:id", controller.getByUser);
 router.put("/:id", controller.update);
 router.delete("/:id", controller.deleteData);
 

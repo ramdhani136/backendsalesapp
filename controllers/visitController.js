@@ -68,6 +68,7 @@ const newVisitById = async (id, userId, type) => {
 };
 
 const newVisit = async (userId, type) => {
+  
   const isBranch = await permissionBranch(userId, type);
   const isCG = await permissionCG(userId, type);
   const isCustomer = await permissionCustomer(userId, type);

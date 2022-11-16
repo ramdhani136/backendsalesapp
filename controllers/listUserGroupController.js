@@ -57,6 +57,19 @@ const getByGroup = async (req, res) => {
   IO.setEmit("listusergroup", await newData(req.userId, "usergroup"));
   res.send(data);
 };
+const getByUser = async (req, res) => {
+  let id = req.params.id;
+  let data = await ListGroup.findAll({
+    where: [{ id_user: id }],
+    order: [["id", "ASC"]],
+    include: [
+      { model: db.users, as: "user", attributes: ["id", "name"] },
+      { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
+    ],
+  });
+  IO.setEmit("listusergroup", await newData(req.userId, "usergroup"));
+  res.send(data);
+};
 
 const getOne = async (req, res) => {
   let id = req.params.id;
@@ -132,4 +145,5 @@ module.exports = {
   update,
   deleteData,
   getByGroup,
+  getByUser
 };
