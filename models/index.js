@@ -36,6 +36,7 @@ db.contact = require("./contactModel")(sequelize, DataTypes);
 db.notif = require("./notifModel")(sequelize, DataTypes);
 db.usergroup = require("./userGroup")(sequelize, DataTypes);
 db.listusergroup = require("./listUserGroup")(sequelize, DataTypes);
+db.schedule = require("./scheduleModel")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
@@ -102,8 +103,6 @@ db.contact.belongsTo(db.users, {
   foreignKey: "id_user",
   as: "user",
 });
-
-
 
 db.contact.belongsTo(db.customers, {
   foreignKey: "id_customer",
@@ -192,7 +191,6 @@ db.permission.belongsTo(db.users, {
   as: "created",
 });
 
-
 // usergroup
 db.usergroup.belongsTo(db.users, {
   foreignKey: "id_created",
@@ -206,6 +204,17 @@ db.listusergroup.belongsTo(db.users, {
 });
 
 db.listusergroup.belongsTo(db.usergroup, {
+  foreignKey: "id_usergroup",
+  as: "usergroup",
+});
+
+// schedule
+db.schedule.belongsTo(db.users, {
+  foreignKey: "id_created",
+  as: "user",
+});
+
+db.schedule.belongsTo(db.usergroup, {
   foreignKey: "id_usergroup",
   as: "usergroup",
 });
