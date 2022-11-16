@@ -34,7 +34,8 @@ module.exports = (sequelize, DataTypes) => {
         "user",
         "branch",
         "contact",
-        "permission"
+        "permission",
+        "usergroup",
       ),
       allowNull: true,
     },
