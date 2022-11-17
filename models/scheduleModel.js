@@ -24,8 +24,8 @@ module.exports = (sequelize, DataTypes) => {
       index: true,
       allowNull: false,
     },
-    activeDate: {
-      type: DataTypes.DATE,
+    closingDate: {
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     status: {

@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         "notif",
         "usergroup",
         "listusergroup",
+        "schedule",
       ),
       allowNull: false,
     },
