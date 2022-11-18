@@ -3,3 +3,4 @@ public/images/
 public/users/
 node_modules/
 .wwebjs_auth/
+request.rest
