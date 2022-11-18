@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
         "usergroup",
         "listusergroup",
         "schedule",
+        "listschedule",
       ),
       allowNull: false,
     },

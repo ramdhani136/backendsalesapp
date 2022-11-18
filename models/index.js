@@ -37,6 +37,7 @@ db.notif = require("./notifModel")(sequelize, DataTypes);
 db.usergroup = require("./userGroup")(sequelize, DataTypes);
 db.listusergroup = require("./listUserGroup")(sequelize, DataTypes);
 db.schedule = require("./scheduleModel")(sequelize, DataTypes);
+db.listschedule = require("./listScheduleModel")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
@@ -217,6 +218,17 @@ db.schedule.belongsTo(db.users, {
 db.schedule.belongsTo(db.usergroup, {
   foreignKey: "id_usergroup",
   as: "usergroup",
+});
+
+// list schedule
+db.listschedule.belongsTo(db.customers, {
+  foreignKey: "id_customer",
+  as: "customer",
+});
+
+db.listschedule.belongsTo(db.schedule, {
+  foreignKey: "id_schedule",
+  as: "schedule",
 });
 
 module.exports = db;

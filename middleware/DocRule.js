@@ -59,6 +59,9 @@ const PermissionData = (req, res, next) => {
             case "/schedule":
               return role.doc == "schedule";
               break;
+            case "/listschedule":
+              return role.doc == "listschedule";
+              break;
           }
         });
 
