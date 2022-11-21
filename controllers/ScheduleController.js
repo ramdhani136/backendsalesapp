@@ -24,42 +24,35 @@ const newData = async (userId, type) => {
 };
 
 const create = async (req, res) => {
-
   let type = "VST";
-  if(req.body.type==="visit"){
-    type="VST";
-  }else{
-    type="CST"
+  if (req.body.type === "visit") {
+    type = "VST";
+  } else {
+    type = "CST";
   }
 
   const date =
-  new Date().getFullYear().toString() +
-  paddy(new Date().getMonth() + 1, 2).toString();
-const lastData = await db.schedule.findOne({
-  where: { name: { [Op.like]: `%${type}${date}%` } },
-  order: [["name", "DESC"]],
-});
+    new Date().getFullYear().toString() +
+    paddy(new Date().getMonth() + 1, 2).toString();
+  const lastData = await db.schedule.findOne({
+    where: { name: { [Op.like]: `%${type}${date}%` } },
+    order: [["name", "DESC"]],
+  });
 
-let isName = "";
-if (lastData) {
-  let masterNumber = parseInt(
-    lastData.name.substr(9, lastData.name.length)
-  );
+  let isName = "";
+  if (lastData) {
+    let masterNumber = parseInt(lastData.name.substr(9, lastData.name.length));
 
-  isName =
-   "SCH" + type +
-    date +
-    paddy(masterNumber + 1, 5).toString();
-} else {
-  isName =
-    "SCH" + type + date + paddy(1, 5).toString();
-}
+    isName = "SCH" + type + date + paddy(masterNumber + 1, 5).toString();
+  } else {
+    isName = "SCH" + type + date + paddy(1, 5).toString();
+  }
   let data = {
     name: isName,
     status: "Draft",
-    type:req.body.type,
-    id_usergroup:req.body.id_usergroup,
-    notes:req.body.notes,
+    type: req.body.type,
+    id_usergroup: req.body.id_usergroup,
+    notes: req.body.notes,
     id_created: req.body.id_created,
     closingDate: req.body.closingDate,
   };
@@ -74,6 +67,24 @@ if (lastData) {
     });
   } catch (error) {
     res.status(400).json({ status: false, message: error.errors[0].message });
+  }
+};
+
+const getListSchedule = async (id) => {
+  const result = await db.listschedule.findAll({
+    where: [{ id_schedule: id }],
+  });
+
+  if (result.length > 0) {
+    let closed = result.filter((item) => {
+      return item.dataValues.doc !== null;
+    });
+    let open = result.filter((item) => {
+      return item.dataValues.doc === null;
+    });
+    return { open: open.length, closed: closed.length };
+  } else {
+    return { open: 0, closed: 0 };
   }
 };
 
@@ -92,8 +103,18 @@ const getAll = async (req, res) => {
       { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
     ],
   });
+  let finalData = [];
+  if (result.length > 0) {
+    for (let ambillist of result) {
+      let progress = await getListSchedule(ambillist.dataValues.id);
+      finalData = result.map((item) => {
+        return { ...item.dataValues, progress: progress };
+      });
+    }
+  }
+  console.log(finalData)
   IO.setEmit("schedule", await newData(req.userId, "schedule"));
-  res.send(result);
+  res.send(finalData);
 };
 
 const getOne = async (req, res) => {
