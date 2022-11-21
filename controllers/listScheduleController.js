@@ -73,6 +73,7 @@ const getAll = async (req, res) => {
     }
 
     return {
+      id: item.dataValues.id,
       id_customer: item.dataValues.id_customer,
       customer: item.dataValues.customer.name,
       schedule: item.dataValues.schedule.name,
