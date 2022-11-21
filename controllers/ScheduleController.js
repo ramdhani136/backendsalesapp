@@ -105,14 +105,16 @@ const getAll = async (req, res) => {
   });
   let finalData = [];
   if (result.length > 0) {
+    let dataProgses = [];
     for (let ambillist of result) {
       let progress = await getListSchedule(ambillist.dataValues.id);
-      finalData = result.map((item) => {
-        return { ...item.dataValues, progress: progress };
+      dataProgses.push(progress);
+      finalData = result.map((item,index) => {
+        return { ...item.dataValues, progress: dataProgses[index] };
       });
     }
   }
-  console.log(finalData)
+
   IO.setEmit("schedule", await newData(req.userId, "schedule"));
   res.send(finalData);
 };
