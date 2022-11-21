@@ -78,12 +78,13 @@ const getAll = async (req, res) => {
       customer: item.dataValues.customer.name,
       schedule: item.dataValues.schedule.name,
       id_schedule: item.dataValues.id_schedule,
-      doc: item.dataValues.doc,
+      doc: item.dataValues.doc?item.dataValues.doc:"",
       type: item.dataValues.type,
       createdAt: item.dataValues.createdAt,
       updatedAt: item.dataValues.updatedAt,
       closeAt: docref ? docref.dataValues.updatedAt : "",
       user: docref ? docref.dataValues.user.name : "",
+      status: item.dataValues.doc ? "Closed":"Open",
     };
   });
   let finaldata = [];
