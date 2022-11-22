@@ -79,13 +79,13 @@ const getBySchedule = async (req, res) => {
       customer: item.dataValues.customer.name,
       schedule: item.dataValues.schedule.name,
       id_schedule: item.dataValues.id_schedule,
-      doc: item.dataValues.doc?item.dataValues.doc:"",
+      doc: item.dataValues.doc ? item.dataValues.doc : "",
       type: item.dataValues.type,
       createdAt: item.dataValues.createdAt,
       updatedAt: item.dataValues.updatedAt,
       closeAt: docref ? docref.dataValues.updatedAt : "",
       user: docref ? docref.dataValues.user.name : "",
-      status: item.dataValues.doc ? "Closed":"Open",
+      status: item.dataValues.doc ? "Closed" : "Open",
     };
   });
   let finaldata = [];
@@ -97,7 +97,6 @@ const getBySchedule = async (req, res) => {
     data: finaldata,
   });
 };
-
 
 const getAll = async (req, res) => {
   let result = await Data.findAll({
@@ -137,19 +136,24 @@ const getAll = async (req, res) => {
       }
     }
 
+    let scheduleClose = await db.schedule.findOne({
+      where: [{ id: item.dataValues.id_schedule }],
+    });
+
     return {
       id: item.dataValues.id,
       id_customer: item.dataValues.id_customer,
       customer: item.dataValues.customer.name,
       schedule: item.dataValues.schedule.name,
       id_schedule: item.dataValues.id_schedule,
-      doc: item.dataValues.doc?item.dataValues.doc:"",
+      doc: item.dataValues.doc ? item.dataValues.doc : "",
       type: item.dataValues.type,
       createdAt: item.dataValues.createdAt,
-      updatedAt: item.dataValues.updatedAt,
+      updatedAt: item.dataValues.closingDate,
       closeAt: docref ? docref.dataValues.updatedAt : "",
       user: docref ? docref.dataValues.user.name : "",
-      status: item.dataValues.doc ? "Closed":"Open",
+      status: item.dataValues.doc ? "Closed" : "Open",
+      scheduleClose: scheduleClose.dataValues.closingDate,
     };
   });
   let finaldata = [];
@@ -235,5 +239,5 @@ module.exports = {
   getOne,
   update,
   deleteData,
-  getBySchedule
+  getBySchedule,
 };
