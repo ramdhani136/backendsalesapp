@@ -39,7 +39,18 @@ const getBySchedule = async (req, res) => {
     where: [{ id_schedule: req.params.id }],
     order: [["id", "DESC"]],
     include: [
-      { model: db.customers, as: "customer", attributes: ["id", "name"] },
+      {
+        model: db.customers,
+        as: "customer",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.customergroup,
+            as: "customergroup",
+            attributes: ["id", "name", "deskripsi", "status"],
+          },
+        ],
+      },
       { model: db.schedule, as: "schedule", attributes: ["id", "name"] },
     ],
   });
@@ -76,7 +87,7 @@ const getBySchedule = async (req, res) => {
     return {
       id: item.dataValues.id,
       id_customer: item.dataValues.id_customer,
-      customer: item.dataValues.customer.name,
+      customer: item.dataValues.customer,
       schedule: item.dataValues.schedule.name,
       id_schedule: item.dataValues.id_schedule,
       doc: item.dataValues.doc ? item.dataValues.doc : "",
@@ -102,7 +113,18 @@ const getAll = async (req, res) => {
   let result = await Data.findAll({
     order: [["id", "DESC"]],
     include: [
-      { model: db.customers, as: "customer", attributes: ["id", "name"] },
+      {
+        model: db.customers,
+        as: "customer",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.customergroup,
+            as: "customergroup",
+            attributes: ["id", "name", "deskripsi", "status"],
+          },
+        ],
+      },
       { model: db.schedule, as: "schedule", attributes: ["id", "name"] },
     ],
   });
@@ -143,7 +165,7 @@ const getAll = async (req, res) => {
     return {
       id: item.dataValues.id,
       id_customer: item.dataValues.id_customer,
-      customer: item.dataValues.customer.name,
+      customer: item.dataValues.customer,
       schedule: item.dataValues.schedule.name,
       id_schedule: item.dataValues.id_schedule,
       doc: item.dataValues.doc ? item.dataValues.doc : "",
