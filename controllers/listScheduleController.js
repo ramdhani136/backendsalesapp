@@ -34,6 +34,71 @@ const create = async (req, res) => {
   }
 };
 
+const getBySchedule = async (req, res) => {
+  let result = await Data.findAll({
+    where: [{ id_schedule: req.params.id }],
+    order: [["id", "DESC"]],
+    include: [
+      { model: db.customers, as: "customer", attributes: ["id", "name"] },
+      { model: db.schedule, as: "schedule", attributes: ["id", "name"] },
+    ],
+  });
+  let final = result.map(async (item) => {
+    let doc = item.dataValues.doc;
+    let type = item.dataValues.type;
+    let docref;
+    if (doc !== null && doc !== "") {
+      if (type === "visit") {
+        docref = await db.visits.findOne({
+          where: [{ name: "CST00120220800001" }],
+          include: [
+            {
+              model: db.users,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
+        });
+      } else {
+        docref = await db.callsheets.findOne({
+          where: [{ name: `${doc}` }],
+          include: [
+            {
+              model: db.users,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
+        });
+      }
+    }
+
+    return {
+      id: item.dataValues.id,
+      id_customer: item.dataValues.id_customer,
+      customer: item.dataValues.customer.name,
+      schedule: item.dataValues.schedule.name,
+      id_schedule: item.dataValues.id_schedule,
+      doc: item.dataValues.doc?item.dataValues.doc:"",
+      type: item.dataValues.type,
+      createdAt: item.dataValues.createdAt,
+      updatedAt: item.dataValues.updatedAt,
+      closeAt: docref ? docref.dataValues.updatedAt : "",
+      user: docref ? docref.dataValues.user.name : "",
+      status: item.dataValues.doc ? "Closed":"Open",
+    };
+  });
+  let finaldata = [];
+  for (let x in final) {
+    finaldata.push(await final[x]);
+  }
+  IO.setEmit("listSchedule", await newData());
+  res.status(200).json({
+    data: finaldata,
+  });
+};
+
+
 const getAll = async (req, res) => {
   let result = await Data.findAll({
     order: [["id", "DESC"]],
@@ -170,4 +235,5 @@ module.exports = {
   getOne,
   update,
   deleteData,
+  getBySchedule
 };
