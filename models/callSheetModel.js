@@ -74,6 +74,14 @@ module.exports = (sequelize, DataTypes) => {
     surveyAt: {
       type: DataTypes.DATE,
     },
+    id_listSchedule: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    schedule: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     isSurvey: { type: DataTypes.ENUM("0", "1", "2", "3"), defaultValue: "0" },
     status: {
       type: DataTypes.ENUM("0", "1", "2"),

@@ -125,6 +125,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM("0", "1", "2"),
       defaultValue: "0",
     },
+    id_listSchedule: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    schedule: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   return Visits;

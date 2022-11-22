@@ -161,6 +161,8 @@ const create = async (req, res) => {
     status: req.body.status,
     newCustomer: req.body.newCustomer,
     manualCustomer: req.body.manualCustomer,
+    schedule: req.body.schedule,
+    id_listSchedule: req.body.id_listSchedule,
   };
   if (req.file != undefined) {
     try {
