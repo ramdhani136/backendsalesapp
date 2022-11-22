@@ -50,7 +50,7 @@ const getBySchedule = async (req, res) => {
     if (doc !== null && doc !== "") {
       if (type === "visit") {
         docref = await db.visits.findOne({
-          where: [{ name: "CST00120220800001" }],
+          where: [{ name: `${doc}` }],
           include: [
             {
               model: db.users,
@@ -114,7 +114,7 @@ const getAll = async (req, res) => {
     if (doc !== null && doc !== "") {
       if (type === "visit") {
         docref = await db.visits.findOne({
-          where: [{ name: "CST00120220800001" }],
+          where: [{ name: `${doc}` }],
           include: [
             {
               model: db.users,
