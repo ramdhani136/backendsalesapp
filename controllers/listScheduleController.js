@@ -1,5 +1,6 @@
 const db = require("../models");
 var IO = require("../app");
+const { Op } = require("sequelize");
 
 const Data = db.listschedule;
 
@@ -111,6 +112,7 @@ const getBySchedule = async (req, res) => {
 
 const getAll = async (req, res) => {
   let result = await Data.findAll({
+    where:[{ doc: { [Op.or]: [null, ""] } }],
     order: [["id", "DESC"]],
     include: [
       {

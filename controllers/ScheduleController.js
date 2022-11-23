@@ -77,10 +77,10 @@ const getListSchedule = async (id) => {
 
   if (result.length > 0) {
     let closed = result.filter((item) => {
-      return item.dataValues.doc !== null;
+      return item.dataValues.doc !== null && item.dataValues.doc !== "";
     });
     let open = result.filter((item) => {
-      return item.dataValues.doc === null;
+      return item.dataValues.doc === null || item.dataValues.doc === "";
     });
     return { open: open.length, closed: closed.length };
   } else {
@@ -109,7 +109,7 @@ const getAll = async (req, res) => {
     for (let ambillist of result) {
       let progress = await getListSchedule(ambillist.dataValues.id);
       dataProgses.push(progress);
-      finalData = result.map((item,index) => {
+      finalData = result.map((item, index) => {
         return { ...item.dataValues, progress: dataProgses[index] };
       });
     }
