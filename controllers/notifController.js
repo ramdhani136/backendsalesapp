@@ -61,8 +61,12 @@ const getAll = async (req, res) => {
 };
 
 const update = async (req, res) => {
+  const getdata = await Notif.findOne({ where: { id: req.params.id } });
   const update = await Notif.update(req.body, {
-    where: { id: req.params.id },
+    where: [
+      { id_params: getdata.dataValues.id_params },
+      { doc: getdata.dataValues.doc },
+    ],
   });
   res.send(update);
 };
