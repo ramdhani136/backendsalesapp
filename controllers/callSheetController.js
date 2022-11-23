@@ -508,6 +508,18 @@ const deleteCallSheet = async (req, res) => {
       IO.setEmit("deleteCallsheet", id);
       IO.setEmit("allCallsheet", await newCallSheet(req.userId, "callsheet"));
 
+      if (
+        isResult[0].dataValues.status === "1" &&
+        isResult[0].dataValues.id_listSchedule !== null &&
+        isResult[0].dataValues.id_listSchedule !== ""
+      ) {
+        await db.listschedule.update(
+          { doc: "" },
+          {
+            where: { doc: isResult[0].dataValues.name },
+          }
+        );
+      }
       res.status(200).json({
         status: true,
         message: "successfully delete data",
