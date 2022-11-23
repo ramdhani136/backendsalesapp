@@ -11,7 +11,6 @@ const { Op } = require("sequelize");
 const { List } = require("whatsapp-web.js");
 const CallSheet = db.callsheets;
 
-
 const newCallSheetById = async (id, userId, type) => {
   const isBranch = await permissionBranch(userId, type);
   const isCG = await permissionCG(userId, type);
@@ -331,7 +330,37 @@ const updateCallSheet = async (req, res) => {
   let id = req.params.id;
   const allData = await newCallSheet(req.userId, "callsheet");
   isResult = allData.filter((item) => item.id == id);
+  const schedule = isResult[0].id_listSchedule;
   if (isResult.length > 0) {
+    if (schedule && req.body.status === "1") {
+      const listSchedule = await db.listschedule.findOne({
+        where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
+      });
+      if (!listSchedule) {
+        res.status(400).json({
+          status: false,
+          message: "Schedule not found",
+        });
+        return;
+      }
+      if (
+        listSchedule.dataValues.doc !== null &&
+        listSchedule.dataValues.doc !== ""
+      ) {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} has been closed with doc ${listSchedule.dataValues.doc}`,
+        });
+        return;
+      } else {
+        await db.listschedule.update(
+          { doc: isResult[0].name },
+          {
+            where: { id: schedule },
+          }
+        );
+      }
+    }
     try {
       await CallSheet.update(req.body, {
         where: { id: id },
