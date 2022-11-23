@@ -361,6 +361,18 @@ const updateCallSheet = async (req, res) => {
         );
       }
     }
+    if (
+      schedule &&
+      isResult[0].status === "1" &&
+      (req.body.status === "2" || req.body.status === "0")
+    ) {
+      await db.listschedule.update(
+        { doc: "" },
+        {
+          where: { id: schedule },
+        }
+      );
+    }
     try {
       await CallSheet.update(req.body, {
         where: { id: id },
