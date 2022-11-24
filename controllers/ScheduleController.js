@@ -144,7 +144,7 @@ const update = async (req, res) => {
   let id = req.params.id;
   try {
     const data = await Data.update(req.body, {
-      where: [{ id: id }, isUser.length > 0 && { id_created: isUser }],
+      where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
     });
     if (data > 0) {
       IO.setEmit("schedule", await newData(req.userId, "schedule"));
@@ -169,7 +169,7 @@ const deleteData = async (req, res) => {
   let id = req.params.id;
   try {
     const hapus = await Data.destroy({
-      where: [{ id: id }, isUser.length > 0 && { id_created: isUser }],
+      where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
     });
     if (hapus > 0) {
       IO.setEmit("schedule", await newData(req.userId, "schedule"));

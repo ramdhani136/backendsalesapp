@@ -29,8 +29,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("Draft", "Active", "Closed", "Canceled"),
-      defaultValue: "Draft",
+      type: DataTypes.ENUM("0", "1", "2"),
+      defaultValue: "0",
     },
   });
 

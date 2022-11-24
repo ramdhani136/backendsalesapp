@@ -112,7 +112,7 @@ const getBySchedule = async (req, res) => {
 
 const getAll = async (req, res) => {
   let result = await Data.findAll({
-    where:[{ doc: { [Op.or]: [null, ""] } }],
+    where: [{ doc: { [Op.or]: [null, ""] } }],
     order: [["id", "DESC"]],
     include: [
       {
@@ -127,10 +127,109 @@ const getAll = async (req, res) => {
           },
         ],
       },
-      { model: db.schedule, as: "schedule", attributes: ["id", "name"] },
+      {
+        model: db.schedule,
+        as: "schedule",
+        attributes: ["id", "name", "status"],
+      },
     ],
   });
-  let final = result.map(async (item) => {
+
+  const filterActive = result.filter(
+    (item) => item.dataValues.schedule.status === "1"
+  );
+  let final = filterActive.map(async (item) => {
+    let doc = item.dataValues.doc;
+    let type = item.dataValues.type;
+    let docref;
+    if (doc !== null && doc !== "") {
+      if (type === "visit") {
+        docref = await db.visits.findOne({
+          where: [{ name: `${doc}` }],
+          include: [
+            {
+              model: db.users,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
+        });
+      } else {
+        docref = await db.callsheets.findOne({
+          where: [{ name: `${doc}` }],
+          include: [
+            {
+              model: db.users,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
+        });
+      }
+    }
+
+    let scheduleClose = await db.schedule.findOne({
+      where: [{ id: item.dataValues.id_schedule }],
+    });
+
+    return {
+      id: item.dataValues.id,
+      id_customer: item.dataValues.id_customer,
+      customer: item.dataValues.customer,
+      schedule: item.dataValues.schedule.name,
+      id_schedule: item.dataValues.id_schedule,
+      doc: item.dataValues.doc ? item.dataValues.doc : "",
+      type: item.dataValues.type,
+      createdAt: item.dataValues.createdAt,
+      updatedAt: item.dataValues.closingDate,
+      closeAt: docref ? docref.dataValues.updatedAt : "",
+      user: docref ? docref.dataValues.user.name : "",
+      status: item.dataValues.doc ? "Closed" : "Open",
+      scheduleClose: scheduleClose.dataValues.closingDate,
+    };
+  });
+  let finaldata = [];
+  for (let x in final) {
+    finaldata.push(await final[x]);
+  }
+  IO.setEmit("listSchedule", await newData());
+  res.status(200).json({
+    data: finaldata,
+  });
+};
+
+const getByType = async (req, res) => {
+  const type = req.params.type;
+  let result = await Data.findAll({
+    where: [{ doc: { [Op.or]: [null, ""] } },{type:type}],
+    order: [["id", "DESC"]],
+    include: [
+      {
+        model: db.customers,
+        as: "customer",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.customergroup,
+            as: "customergroup",
+            attributes: ["id", "name", "deskripsi", "status"],
+          },
+        ],
+      },
+      {
+        model: db.schedule,
+        as: "schedule",
+        attributes: ["id", "name", "status"],
+      },
+    ],
+  });
+
+
+
+  const filterActive = result.filter(
+    (item) => item.dataValues.schedule.status === "1"
+  );
+  let final = filterActive.map(async (item) => {
     let doc = item.dataValues.doc;
     let type = item.dataValues.type;
     let docref;
@@ -264,4 +363,5 @@ module.exports = {
   update,
   deleteData,
   getBySchedule,
+  getByType,
 };

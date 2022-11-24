@@ -335,6 +335,13 @@ const updateCallSheet = async (req, res) => {
     if (schedule && req.body.status === "1") {
       const listSchedule = await db.listschedule.findOne({
         where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
+        include: [
+          {
+            model: db.schedule,
+            as: "schedule",
+            attributes: ["id", "name", "status"],
+          },
+        ],
       });
       if (!listSchedule) {
         res.status(400).json({
@@ -352,14 +359,20 @@ const updateCallSheet = async (req, res) => {
           message: `Shedule ${isResult[0].schedule} has been closed with doc ${listSchedule.dataValues.doc}`,
         });
         return;
-      } else {
-        await db.listschedule.update(
-          { doc: isResult[0].name },
-          {
-            where: { id: schedule },
-          }
-        );
       }
+      if (listSchedule.dataValues.schedule.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} has been closed`,
+        });
+        return;
+      }
+      await db.listschedule.update(
+        { doc: isResult[0].name },
+        {
+          where: { id: schedule },
+        }
+      );
     }
     if (
       schedule &&
