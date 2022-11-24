@@ -223,13 +223,39 @@ const getByType = async (req, res) => {
         model: db.schedule,
         as: "schedule",
         attributes: ["id", "name", "status"],
+        include: [
+          {
+            model: db.usergroup,
+            as: "usergroup",
+            attributes: ["name"],
+            include: [
+              {
+                model: db.listusergroup,
+                as: "listusergroup",
+                attributes: ["id_user"],
+
+                include: [
+                  {
+                    model: db.users,
+                    as: "user",
+                    attributes: ["name"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   });
 
-  const filterActive = result.filter(
-    (item) => item.dataValues.schedule.status === "1"
-  );
+  const filterActive = result.filter((item) => {
+    let ada =
+      item.dataValues.schedule.dataValues.usergroup.dataValues.listusergroup.find(
+        (a) => a.dataValues.id_user.toString() === req.userId.toString()
+      );
+    return item.dataValues.schedule.status === "1" && ada;
+  });
   let final = filterActive.map(async (item) => {
     let doc = item.dataValues.doc;
     let type = item.dataValues.type;

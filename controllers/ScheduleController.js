@@ -72,33 +72,6 @@ const create = async (req, res) => {
   }
 };
 
-// const UpdateExpired = async (req, res) => {
-//   const now = moment(`${new Date()}`).format("YYYY-MM-DD");
-//   const exp = await Data.findAll({
-//     where: [
-//       {
-//         closingDate: {
-//           [Op.lt]: now,
-//         },
-//       },
-//       { status: "1" },
-//     ],
-//   });
-
-//   if (exp.length > 0) {
-//     for (let item of exp) {
-//       console.log(item.dataValues.id);
-//       await Data.update(
-//         { status: "3" },
-//         {
-//           where: [{ id: item.dataValues.id }],
-//         }
-//       );
-//     }
-//   }
-//   res.sendStatus(200);
-// };
-
 const UpdateExpired = async () => {
   const now = moment(`${new Date()}`).format("YYYY-MM-DD");
   const exp = await Data.findAll({

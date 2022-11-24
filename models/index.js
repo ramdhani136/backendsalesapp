@@ -198,6 +198,11 @@ db.usergroup.belongsTo(db.users, {
   as: "user",
 });
 
+db.usergroup.hasMany(db.listusergroup, {
+  foreignKey: "id_usergroup",
+  as: "listusergroup",
+});
+
 // listusergroup
 db.listusergroup.belongsTo(db.users, {
   foreignKey: "id_user",
