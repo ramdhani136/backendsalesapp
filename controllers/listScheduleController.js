@@ -1,6 +1,7 @@
 const db = require("../models");
 var IO = require("../app");
 const { Op } = require("sequelize");
+const { UpdateExpired } = require("./ScheduleController");
 
 const Data = db.listschedule;
 
@@ -111,6 +112,7 @@ const getBySchedule = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
+  await UpdateExpired();
   let result = await Data.findAll({
     where: [{ doc: { [Op.or]: [null, ""] } }],
     order: [["id", "DESC"]],
@@ -199,6 +201,7 @@ const getAll = async (req, res) => {
 };
 
 const getByType = async (req, res) => {
+  await UpdateExpired();
   const type = req.params.type;
   let result = await Data.findAll({
     where: [{ doc: { [Op.or]: [null, ""] } }, { type: type }],
@@ -353,7 +356,6 @@ const deleteData = async (req, res) => {
       where: [{ name: doc }, { status: "1" }],
     });
   }
-
 
   if (relasiData) {
     res.status(400).json({

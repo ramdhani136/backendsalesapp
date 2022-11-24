@@ -72,6 +72,59 @@ const create = async (req, res) => {
   }
 };
 
+// const UpdateExpired = async (req, res) => {
+//   const now = moment(`${new Date()}`).format("YYYY-MM-DD");
+//   const exp = await Data.findAll({
+//     where: [
+//       {
+//         closingDate: {
+//           [Op.lt]: now,
+//         },
+//       },
+//       { status: "1" },
+//     ],
+//   });
+
+//   if (exp.length > 0) {
+//     for (let item of exp) {
+//       console.log(item.dataValues.id);
+//       await Data.update(
+//         { status: "3" },
+//         {
+//           where: [{ id: item.dataValues.id }],
+//         }
+//       );
+//     }
+//   }
+//   res.sendStatus(200);
+// };
+
+const UpdateExpired = async () => {
+  const now = moment(`${new Date()}`).format("YYYY-MM-DD");
+  const exp = await Data.findAll({
+    where: [
+      {
+        closingDate: {
+          [Op.lt]: now,
+        },
+      },
+      { status: "1" },
+    ],
+  });
+
+  if (exp.length > 0) {
+    for (let item of exp) {
+      console.log(item.dataValues.id);
+      await Data.update(
+        { status: "3" },
+        {
+          where: [{ id: item.dataValues.id }],
+        }
+      );
+    }
+  }
+};
+
 const getListSchedule = async (id) => {
   const result = await db.listschedule.findAll({
     where: [{ id_schedule: id }],
@@ -91,6 +144,7 @@ const getListSchedule = async (id) => {
 };
 
 const getAll = async (req, res) => {
+  await UpdateExpired();
   const isUser = await permissionUser(req.userId, "schedule");
   const isWhere = [isUser.length > 0 && { id_created: isUser }];
   let finalWhere = [];
@@ -122,6 +176,7 @@ const getAll = async (req, res) => {
 };
 
 const getOne = async (req, res) => {
+  await UpdateExpired();
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
   let response = await Data.findOne({
@@ -220,33 +275,6 @@ const deleteData = async (req, res) => {
   } catch (error) {
     res.status(400).json({ status: false, message: "failed to delete data" });
   }
-};
-
-const UpdateExpired = async (req, res) => {
-  const now = moment(`${new Date()}`).format("YYYY-MM-DD");
-  const exp = await Data.findAll({
-    where: [
-      {
-        closingDate: {
-          [Op.lt]: now,
-        },
-      },
-      { status: "1" },
-    ],
-  });
-
-  if (exp.length > 0) {
-    for (let item of exp) {
-      console.log(item.dataValues.id);
-      await Data.update(
-        { status: "3" },
-        {
-          where: [{ id: item.dataValues.id }],
-        }
-      );
-    }
-  }
-  res.send(exp);
 };
 
 module.exports = {

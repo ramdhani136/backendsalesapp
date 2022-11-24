@@ -4,7 +4,6 @@ const controller = require("../controllers/ScheduleController");
 
 router.post("/", controller.create);
 router.get("/", controller.getAll);
-router.get("/expired", controller.UpdateExpired);
 router.get("/:id", controller.getOne);
 router.put("/:id", controller.update);
 router.delete("/:id", controller.deleteData);

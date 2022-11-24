@@ -9,6 +9,7 @@ var IO = require("../app");
 const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { List } = require("whatsapp-web.js");
+const { UpdateExpired } = require("./ScheduleController");
 const CallSheet = db.callsheets;
 
 const newCallSheetById = async (id, userId, type) => {
@@ -327,6 +328,7 @@ const getOneCallSheet = async (req, res) => {
 };
 
 const updateCallSheet = async (req, res) => {
+  await UpdateExpired();
   let id = req.params.id;
   const allData = await newCallSheet(req.userId, "callsheet");
   isResult = allData.filter((item) => item.id == id);
@@ -515,6 +517,7 @@ const updateCallSheet = async (req, res) => {
 };
 
 const deleteCallSheet = async (req, res) => {
+  await UpdateExpired();
   let id = req.params.id;
   const allData = await newCallSheet(req.userId, "callsheet");
   isResult = allData.filter((item) => item.id == id);
