@@ -201,7 +201,7 @@ const getAll = async (req, res) => {
 const getByType = async (req, res) => {
   const type = req.params.type;
   let result = await Data.findAll({
-    where: [{ doc: { [Op.or]: [null, ""] } },{type:type}],
+    where: [{ doc: { [Op.or]: [null, ""] } }, { type: type }],
     order: [["id", "DESC"]],
     include: [
       {
@@ -223,8 +223,6 @@ const getByType = async (req, res) => {
       },
     ],
   });
-
-
 
   const filterActive = result.filter(
     (item) => item.dataValues.schedule.status === "1"
@@ -334,6 +332,37 @@ const update = async (req, res) => {
 
 const deleteData = async (req, res) => {
   let id = req.params.id;
+  const getList = await Data.findOne({ where: [{ id: id }] });
+  if (!getList) {
+    res.status(400).json({
+      status: false,
+      message: `Data not found`,
+    });
+    return;
+  }
+  const type = getList.dataValues.type;
+  const doc = getList.dataValues.doc;
+
+  let relasiData;
+  if (type === "callsheet") {
+    relasiData = await db.callsheets.findOne({
+      where: [{ name: doc }, { status: "1" }],
+    });
+  } else {
+    relasiData = await db.visits.findOne({
+      where: [{ name: doc }, { status: "1" }],
+    });
+  }
+
+
+  if (relasiData) {
+    res.status(400).json({
+      status: false,
+      message: `Failed, ${type} ${doc} must be canceled before deleting this doc`,
+    });
+    return;
+  }
+
   try {
     const hapus = await Data.destroy({
       where: [{ id: id }],
