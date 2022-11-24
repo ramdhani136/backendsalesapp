@@ -4,6 +4,7 @@ var IO = require("../app");
 const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { schedule } = require("../models");
+const moment = require("moment/moment");
 
 const Data = db.schedule;
 
@@ -221,10 +222,38 @@ const deleteData = async (req, res) => {
   }
 };
 
+const UpdateExpired = async (req, res) => {
+  const now = moment(`${new Date()}`).format("YYYY-MM-DD");
+  const exp = await Data.findAll({
+    where: [
+      {
+        closingDate: {
+          [Op.lt]: now,
+        },
+      },
+      { status: "1" },
+    ],
+  });
+
+  if (exp.length > 0) {
+    for (let item of exp) {
+      console.log(item.dataValues.id);
+      await Data.update(
+        { status: "3" },
+        {
+          where: [{ id: item.dataValues.id }],
+        }
+      );
+    }
+  }
+  res.send(exp);
+};
+
 module.exports = {
   create,
   getAll,
   getOne,
   update,
   deleteData,
+  UpdateExpired,
 };
