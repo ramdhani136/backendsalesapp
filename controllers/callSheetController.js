@@ -350,6 +350,13 @@ const updateCallSheet = async (req, res) => {
         });
         return;
       }
+      if (listSchedule.dataValues.schedule.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} has been closed`,
+        });
+        return;
+      }
       if (
         listSchedule.dataValues.doc !== null &&
         listSchedule.dataValues.doc !== ""
@@ -360,13 +367,7 @@ const updateCallSheet = async (req, res) => {
         });
         return;
       }
-      if (listSchedule.dataValues.schedule.status !== "1") {
-        res.status(400).json({
-          status: false,
-          message: `Shedule ${isResult[0].schedule} has been closed`,
-        });
-        return;
-      }
+
       await db.listschedule.update(
         { doc: isResult[0].name },
         {
@@ -379,6 +380,23 @@ const updateCallSheet = async (req, res) => {
       isResult[0].status === "1" &&
       (req.body.status === "2" || req.body.status === "0")
     ) {
+      const listSchedule = await db.listschedule.findOne({
+        where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
+        include: [
+          {
+            model: db.schedule,
+            as: "schedule",
+            attributes: ["id", "name", "status"],
+          },
+        ],
+      });
+      if (listSchedule.dataValues.schedule.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} has been closed`,
+        });
+        return;
+      }
       await db.listschedule.update(
         { doc: "" },
         {
@@ -501,6 +519,26 @@ const deleteCallSheet = async (req, res) => {
   const allData = await newCallSheet(req.userId, "callsheet");
   isResult = allData.filter((item) => item.id == id);
   if (isResult.length > 0) {
+    const listSchedule = await db.listschedule.findOne({
+      where: { doc: isResult[0].dataValues.name },
+      include: [
+        {
+          model: db.schedule,
+          as: "schedule",
+          attributes: ["id", "name", "status"],
+        },
+      ],
+    });
+
+    if (listSchedule) {
+      if (listSchedule.dataValues.schedule.dataValues.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: ` Schedule ${listSchedule.dataValues.schedule.dataValues.name} has been close `,
+        });
+        return;
+      }
+    }
     try {
       await CallSheet.destroy({
         where: { id: id },

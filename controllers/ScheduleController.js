@@ -3,6 +3,7 @@ const { permissionUser } = require("../middleware/getPermission");
 var IO = require("../app");
 const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
+const { schedule } = require("../models");
 
 const Data = db.schedule;
 
@@ -167,6 +168,37 @@ const update = async (req, res) => {
 const deleteData = async (req, res) => {
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
+  const getSchedule = await Data.findOne({
+    where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
+  });
+  if (!getSchedule) {
+    res.status(400).json({
+      status: false,
+      message: `Data not found or permission Denied `,
+    });
+    return;
+  }
+  const type = getSchedule.dataValues.type;
+  const name = getSchedule.dataValues.name;
+  let relasiData;
+  if (type === "callsheet") {
+    relasiData = await db.callsheets.findOne({
+      where: [{ schedule: name }, { status: "1" }],
+    });
+  } else {
+    relasiData = await db.visits.findOne({
+      where: [{ schedule: name }, { status: "1" }],
+    });
+  }
+
+  if (relasiData) {
+    res.status(400).json({
+      status: false,
+      message: `Error, ${type} ${relasiData.dataValues.name} must be canceled before deleting this doc `,
+    });
+    return;
+  }
+
   try {
     const hapus = await Data.destroy({
       where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
