@@ -123,7 +123,7 @@ const getOne = async (req, res) => {
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
   let response = await Data.findOne({
-    where: [{ id: id }, isUser.length > 0 && { id_created: isUser }],
+    where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
     include: [
       { model: db.users, as: "user", attributes: ["id", "name"] },
       { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
