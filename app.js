@@ -77,6 +77,11 @@ const userGroupRoute = require("./routes/userGroupRoute");
 const listUserGroupRoute = require("./routes/listUserGroupRoute");
 const scheduleRoute = require("./routes/ScheduleRoute");
 const listSchedule = require("./routes/listScheduleRoute.js");
+const workflowRoute = require("./routes/workflowRoute");
+const workflowStateRoute = require("./routes/workflowStateRoute");
+const workflowActionRoute = require("./routes/workflowActionRoute");
+const actionStateController = require("./routes/actionStateRoute");
+const workflowTransition = require("./routes/workflowTransition");
 var myModul = require("./utils/waBot");
 
 // app.get("/coba", async (req, res) => {
@@ -140,6 +145,11 @@ app.use("/usergroup", verifyToken, PermissionData, userGroupRoute);
 app.use("/listusergroup", verifyToken, PermissionData, listUserGroupRoute);
 app.use("/schedule", verifyToken, PermissionData, scheduleRoute);
 app.use("/listschedule", verifyToken, PermissionData, listSchedule);
+app.use("/workflow", verifyToken, PermissionData, workflowRoute);
+app.use("/workflowstate", verifyToken, PermissionData, workflowStateRoute);
+app.use("/workflowaction", verifyToken, PermissionData, workflowActionRoute);
+app.use("/actionstate", verifyToken, PermissionData, actionStateController);
+app.use("/workflowtransition", verifyToken, PermissionData, workflowTransition);
 app.get("*", function (req, res) {
   res.status(404).send("404 NOT FOUND");
 });

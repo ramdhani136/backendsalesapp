@@ -38,6 +38,11 @@ db.usergroup = require("./userGroup")(sequelize, DataTypes);
 db.listusergroup = require("./listUserGroup")(sequelize, DataTypes);
 db.schedule = require("./scheduleModel")(sequelize, DataTypes);
 db.listschedule = require("./listScheduleModel")(sequelize, DataTypes);
+db.workflowstate = require("./workflowstate")(sequelize, DataTypes);
+db.workflowaction = require("./workflowaction")(sequelize, DataTypes);
+db.actionstate = require("./actionstate")(sequelize, DataTypes);
+db.workflow = require("./workflow")(sequelize, DataTypes);
+db.workflowtransition = require("./workflowtransition")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
@@ -234,6 +239,71 @@ db.listschedule.belongsTo(db.customers, {
 db.listschedule.belongsTo(db.schedule, {
   foreignKey: "id_schedule",
   as: "schedule",
+});
+
+// workflow
+db.workflow.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+// workflowstate
+db.workflowstate.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+// workflowaction
+db.workflowaction.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+// actionstate
+db.actionstate.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+db.actionstate.belongsTo(db.workflow, {
+  foreignKey: "id_user",
+  as: "workflow",
+});
+db.actionstate.belongsTo(db.workflowstate, {
+  foreignKey: "id_state",
+  as: "state",
+});
+db.actionstate.belongsTo(db.roleprofiles, {
+  foreignKey: "id_role",
+  as: "role",
+});
+
+// workflowtransition
+db.workflowtransition.belongsTo(db.users, {
+  foreignKey: "id_user",
+  as: "user",
+});
+
+db.workflowtransition.belongsTo(db.workflow, {
+  foreignKey: "id_workflow",
+  as: "workflow",
+});
+db.workflowtransition.belongsTo(db.workflowaction, {
+  foreignKey: "id_action",
+  as: "action",
+});
+db.workflowtransition.belongsTo(db.roleprofiles, {
+  foreignKey: "id_role",
+  as: "role",
+});
+
+db.workflowtransition.belongsTo(db.workflowstate, {
+  foreignKey: "id_stateActive",
+  as: "stateactive",
+});
+db.workflowtransition.belongsTo(db.workflowstate, {
+  foreignKey: "id_nextState",
+  as: "nextstate",
 });
 
 module.exports = db;

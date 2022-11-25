@@ -36,7 +36,8 @@ module.exports = (sequelize, DataTypes) => {
         "contact",
         "permission",
         "usergroup",
-        "schedule"
+        "schedule",
+        "workflow"
       ),
       allowNull: true,
     },

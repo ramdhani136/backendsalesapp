@@ -62,6 +62,24 @@ const PermissionData = (req, res, next) => {
             case "/listschedule":
               return role.doc == "listschedule";
               break;
+            case "/listschedule":
+              return role.doc == "listschedule";
+              break;
+            case "/workflow":
+              return role.doc == "workflow";
+              break;
+            case "/workflowstate":
+              return role.doc == "workflowstate";
+              break;
+            case "/workflowaction":
+              return role.doc == "workflowaction";
+              break;
+            case "/actionstate":
+              return role.doc == "actionstate";
+              break;
+            case "/workflowtransition":
+              return role.doc == "workflowtransition";
+              break;
           }
         });
 
