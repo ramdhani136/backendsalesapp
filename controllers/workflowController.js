@@ -23,6 +23,7 @@ const create = async (req, res) => {
     name: req.body.name,
     doc: req.body.doc,
     id_user: req.userId,
+    status: req.status,
   };
 
   if (!req.body.name) {
