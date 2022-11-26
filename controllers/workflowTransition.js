@@ -124,6 +124,39 @@ const getOne = async (req, res) => {
   });
 };
 
+
+const getByWorkflow = async (req, res) => {
+  let id = req.params.id;
+  let result = await Data.findAll({
+    where: [{ id_workflow: id }],
+    include: [
+      { model: db.workflow, as: "workflow", attributes: ["name"] },
+      { model: db.users, as: "user", attributes: ["name"] },
+      {
+        model: db.workflowaction,
+        as: "action",
+        attributes: ["name"],
+      },
+      { model: db.roleprofiles, as: "role", attributes: ["name"] },
+      {
+        model: db.workflowstate,
+        as: "stateactive",
+        attributes: ["name"],
+      },
+      {
+        model: db.workflowstate,
+        as: "nextstate",
+        attributes: ["name"],
+      },
+    ],
+  });
+  res.status(200).json({
+    status: true,
+    data: result,
+  });
+};
+
+
 const update = async (req, res) => {
   let id = req.params.id;
   try {
@@ -164,4 +197,5 @@ module.exports = {
   getOne,
   update,
   deleteData,
+  getByWorkflow
 };
