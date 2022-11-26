@@ -67,7 +67,6 @@ const create = async (req, res) => {
     return;
   }
 
-
   if (checkValid(res, "Role", req.body.id_role)) {
     return;
   }
@@ -124,7 +123,6 @@ const getOne = async (req, res) => {
   });
 };
 
-
 const getByWorkflow = async (req, res) => {
   let id = req.params.id;
   let result = await Data.findAll({
@@ -155,7 +153,6 @@ const getByWorkflow = async (req, res) => {
     data: result,
   });
 };
-
 
 const update = async (req, res) => {
   let id = req.params.id;
@@ -197,5 +194,5 @@ module.exports = {
   getOne,
   update,
   deleteData,
-  getByWorkflow
+  getByWorkflow,
 };

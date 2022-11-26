@@ -133,6 +133,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    workState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   return Visits;

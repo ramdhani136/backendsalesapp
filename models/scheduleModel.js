@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM("0", "1", "2","3"),
       defaultValue: "0",
     },
+    workState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   return Schedule;

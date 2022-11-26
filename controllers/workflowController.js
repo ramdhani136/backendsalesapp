@@ -4,6 +4,18 @@ const { permissionUser } = require("../middleware/getPermission");
 
 const Data = db.workflow;
 
+const checkValid = (res, name, data) => {
+  if (!data) {
+    res.status(400).json({
+      status: false,
+      message: `${name} is mandatory`,
+    });
+    return true;
+  } else {
+    return false;
+  }
+};
+
 const newData = async (userId, type) => {
   const isUser = await permissionUser(userId, type);
   const isWhere = [isUser.length > 0 && { id_user: isUser }];
@@ -123,10 +135,36 @@ const deleteData = async (req, res) => {
   }
 };
 
+const disableWorkflow = async (req, res) => {
+  if (checkValid(res, "Doc Type", req.body.doc)) {
+    return;
+  }
+  const result = await Data.findAll({
+    where: [{ status: "1" }, { doc: req.body.doc }],
+  });
+  if (result.length > 0) {
+    try {
+      for (let item of result) {
+        await Data.update(
+          { status: "0" },
+          {
+            where: [{ id: item.dataValues.id }],
+          }
+        );
+      }
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(400).json({ status: false, data: error });
+    }
+    return;
+  }
+  res.sendStatus(200);
+};
 module.exports = {
   create,
   getAll,
   getOne,
   update,
   deleteData,
+  disableWorkflow,
 };
