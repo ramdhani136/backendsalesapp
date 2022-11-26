@@ -75,10 +75,10 @@ const PermissionData = (req, res, next) => {
               return role.doc == "workflowaction";
               break;
             case "/actionstate":
-              return role.doc == "actionstate";
+              return role.doc == "workflow";
               break;
             case "/workflowtransition":
-              return role.doc == "workflowtransition";
+              return role.doc == "workflow";
               break;
           }
         });
