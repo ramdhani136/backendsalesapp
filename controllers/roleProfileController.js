@@ -66,6 +66,31 @@ const create = async (req, res) => {
 };
 
 const getAllProfile = async (req, res) => {
+
+  const isAll = await RoleProfile.findOne({ where: { name: "All" } })
+  const isDisabled = await RoleProfile.findOne({ where: { name: "Disabled" } })
+  try {
+    if (!isAll) {
+      RoleProfile.create({
+        name: "All",
+        id_user: req.userId,
+        id_branch: "1",
+      })
+    }
+    if (!isDisabled) {
+      RoleProfile.create({
+        name: "Disabled",
+        id_user: req.userId,
+        id_branch: "1",
+      })
+    }
+  } catch (error) {
+    res.status(400).json({
+      status: true,
+      data: error,
+    });
+    return
+  }
   const isBranch = await permissionBranch(req.userId, "roleprofile");
   const isUser = await permissionUser(req.userId, "roleprofile");
   const isWhere = [
@@ -81,25 +106,25 @@ const getAllProfile = async (req, res) => {
     order: [["name", "ASC"]],
     // DIUBAH NANTI DI CEK
     include: [
-    //   {
-    //     model: db.rolelists,
-    //     as: "rolelist",
-    //     where: {
-    //       status: true,
-    //     },
-    //     attributes: [
-    //       "id",
-    //       "doc",
-    //       "create",
-    //       "read",
-    //       "update",
-    //       "delete",
-    //       "amend",
-    //       "submit",
-    //       "report",
-    //       "export",
-    //     ],
-    //   },
+      //   {
+      //     model: db.rolelists,
+      //     as: "rolelist",
+      //     where: {
+      //       status: true,
+      //     },
+      //     attributes: [
+      //       "id",
+      //       "doc",
+      //       "create",
+      //       "read",
+      //       "update",
+      //       "delete",
+      //       "amend",
+      //       "submit",
+      //       "report",
+      //       "export",
+      //     ],
+      //   },
       { model: db.users, as: "user", attributes: ["id", "name"] },
       { model: db.branch, as: "branch", attributes: ["id", "name"] },
     ],

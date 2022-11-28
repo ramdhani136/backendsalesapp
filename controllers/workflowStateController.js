@@ -38,28 +38,6 @@ const create = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-  const isAll = await Data.findAll({ where: { name: "All" } })
-  const isDisabled = await Data.findAll({ where: { name: "Disabled" } })
-  try {
-    if (isAll.length === 0) {
-      Data.create({
-        name: "All",
-        id_user: req.userId
-      })
-    }
-    if (isDisabled.length === 0) {
-      Data.create({
-        name: "Disabled",
-        id_user: req.userId
-      })
-    }
-  } catch (error) {
-    res.status(400).json({
-      status: true,
-      data: error,
-    });
-    return
-  }
   res.status(200).json({
     status: true,
     data: await newData(),
