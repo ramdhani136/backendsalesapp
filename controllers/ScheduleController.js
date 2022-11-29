@@ -26,8 +26,9 @@ const newData = async (userId, type) => {
 };
 
 const create = async (req, res) => {
+ 
   let type = "VST";
-  if (req.body.type === "visit") {
+  if (req.body.type.toLowerCase() === "visit") {
     type = "VST";
   } else {
     type = "CST";
@@ -51,14 +52,13 @@ const create = async (req, res) => {
   }
   let data = {
     name: isName,
-    status: "Draft",
+    status: "0",
     type: req.body.type,
     id_usergroup: req.body.id_usergroup,
     notes: req.body.notes,
     id_created: req.body.id_created,
     closingDate: req.body.closingDate,
   };
-
   try {
     const response = await Data.create(data);
     IO.setEmit("schedule", await newData(req.userId, "schedule"));

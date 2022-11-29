@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.ENUM("0", "1", "2","3"),
       defaultValue: "0",
+      allowNull:false,
     },
     workState: {
       type: DataTypes.STRING,
