@@ -8,6 +8,6 @@ router.put("/disabled", controller.disableWorkflow);
 router.get("/:id", controller.getOne);
 router.put("/:id", controller.update);
 router.delete("/:id", controller.deleteData);
-router.delete("/:id", controller.deleteData);
+router.delete("/child/:id", controller.deleteChildById);
 
 module.exports = router;

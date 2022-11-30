@@ -160,6 +160,18 @@ const disableWorkflow = async (req, res) => {
   }
   res.sendStatus(200);
 };
+
+const deleteChildById = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await db.actionstate.destroy({ where: { id_workflow: id } });
+    await db.workflowtransition.destroy({ where: { id_workflow: id } });
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(400).json({ status: false, data: error });
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -167,4 +179,5 @@ module.exports = {
   update,
   deleteData,
   disableWorkflow,
+  deleteChildById
 };
