@@ -172,7 +172,7 @@ const deleteChildById = async (req, res) => {
   }
 };
 
-const getButtonAction = async (doc, workstate) => {
+const getButtonAction = async (doc, docrelasi, req) => {
   const workflow = await Data.findOne({
     where: [{ status: 1 }, { doc: doc }],
   });
@@ -194,7 +194,7 @@ const getButtonAction = async (doc, workstate) => {
           model: db.workflowstate,
           as: "stateactive",
           attributes: ["name"],
-          where: { name: workstate },
+          where: { name: docrelasi.dataValues.workState },
         },
         {
           model: db.workflowstate,
@@ -203,7 +203,19 @@ const getButtonAction = async (doc, workstate) => {
         },
       ],
     });
-    return transition;
+
+    let allfilter = [];
+    for (let listtrans of transition) {
+      if (listtrans.dataValues.selfApproval) {
+        if (docrelasi.dataValues.id_created === req.userId) {
+          allfilter.push(listtrans);
+        }
+      }else{
+
+      }
+    }
+
+    return allfilter;
   } else {
     return [];
   }

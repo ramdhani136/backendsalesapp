@@ -164,7 +164,7 @@ const getOne = async (req, res) => {
     ],
   });
   if (response) {
-    const buttonaction = await getButtonAction("schedule",response.workState);
+    const buttonaction = await getButtonAction("schedule",response,req);
     res.status(200).send(buttonaction);
   } else {
     res.status(400).json({
