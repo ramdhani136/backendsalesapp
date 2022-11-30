@@ -83,13 +83,12 @@ const UpdateExpired = async () => {
           [Op.lt]: now,
         },
       },
-      { status: "1" },
+      { status: ["1"]},
     ],
   });
 
   if (exp.length > 0) {
     for (let item of exp) {
-      console.log(item.dataValues.id);
       await Data.update(
         { status: "3", workState: "Closed" },
         {
@@ -151,8 +150,6 @@ const getAll = async (req, res) => {
 };
 
 const getOne = async (req, res) => {
-
-
   await UpdateExpired();
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
@@ -164,8 +161,9 @@ const getOne = async (req, res) => {
     ],
   });
   if (response) {
-    const buttonaction = await getButtonAction("schedule",response,req);
-    res.status(200).send(buttonaction);
+    const buttonaction = await getButtonAction("schedule", response, req);
+    response.dataValues.action = buttonaction;
+    res.status(200).send(response);
   } else {
     res.status(400).json({
       status: false,

@@ -173,6 +173,13 @@ const deleteChildById = async (req, res) => {
 };
 
 const getButtonAction = async (doc, docrelasi, req) => {
+  const roleuser = await db.roleusers.findAll({
+    where: { id_user: req.userId },
+  });
+
+  const finalroleuser = roleuser.map((item) => {
+    return item.id_roleprofile;
+  });
   const workflow = await Data.findOne({
     where: [{ status: 1 }, { doc: doc }],
   });
@@ -210,12 +217,31 @@ const getButtonAction = async (doc, docrelasi, req) => {
         if (docrelasi.dataValues.id_created === req.userId) {
           allfilter.push(listtrans);
         }
-      }else{
-
+      } else {
+        let generateAccess = finalroleuser.find((item) => {
+          return (
+            item === listtrans.dataValues.id_role ||
+            listtrans.dataValues.role.dataValues.name === "All"
+          );
+        });
+        if (generateAccess) {
+          allfilter.push(listtrans);
+        }
       }
     }
 
-    return allfilter;
+    const restruct = allfilter.map((item) => {
+      return {
+        id_workflow: id_workflow,
+        name: item.action.name,
+        nextstate: {
+          id: item.id_nextState,
+          name: item.nextstate.name,
+        },
+      };
+    });
+
+    return restruct;
   } else {
     return [];
   }
