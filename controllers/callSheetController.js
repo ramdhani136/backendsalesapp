@@ -145,6 +145,7 @@ const create = async (req, res) => {
     manualCustomer: req.body.manualCustomer,
     schedule: req.body.schedule,
     id_listSchedule: req.body.id_listSchedule,
+    workState: "Draft",
   };
   try {
     let callsheet = await CallSheet.create(data);

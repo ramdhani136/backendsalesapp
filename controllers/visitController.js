@@ -163,6 +163,7 @@ const create = async (req, res) => {
     manualCustomer: req.body.manualCustomer,
     schedule: req.body.schedule,
     id_listSchedule: req.body.id_listSchedule,
+    workState: "Draft",
   };
   if (req.file != undefined) {
     try {

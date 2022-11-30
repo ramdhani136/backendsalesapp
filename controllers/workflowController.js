@@ -172,6 +172,43 @@ const deleteChildById = async (req, res) => {
   }
 };
 
+const getButtonAction = async (doc, workstate) => {
+  const workflow = await Data.findOne({
+    where: [{ status: 1 }, { doc: doc }],
+  });
+
+  if (workflow) {
+    const id_workflow = workflow.id;
+    const transition = await db.workflowtransition.findAll({
+      where: [{ id_workflow: id_workflow }],
+      include: [
+        { model: db.workflow, as: "workflow", attributes: ["name"] },
+        { model: db.users, as: "user", attributes: ["name"] },
+        {
+          model: db.workflowaction,
+          as: "action",
+          attributes: ["name"],
+        },
+        { model: db.roleprofiles, as: "role", attributes: ["name"] },
+        {
+          model: db.workflowstate,
+          as: "stateactive",
+          attributes: ["name"],
+          where: { name: workstate },
+        },
+        {
+          model: db.workflowstate,
+          as: "nextstate",
+          attributes: ["name"],
+        },
+      ],
+    });
+    return transition;
+  } else {
+    return [];
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -179,5 +216,6 @@ module.exports = {
   update,
   deleteData,
   disableWorkflow,
-  deleteChildById
+  deleteChildById,
+  getButtonAction,
 };

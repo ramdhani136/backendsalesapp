@@ -5,6 +5,7 @@ const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { schedule } = require("../models");
 const moment = require("moment/moment");
+const { getButtonAction } = require("./workflowController");
 
 const Data = db.schedule;
 
@@ -26,7 +27,6 @@ const newData = async (userId, type) => {
 };
 
 const create = async (req, res) => {
- 
   let type = "VST";
   if (req.body.type.toLowerCase() === "visit") {
     type = "VST";
@@ -58,6 +58,8 @@ const create = async (req, res) => {
     notes: req.body.notes,
     id_created: req.body.id_created,
     closingDate: req.body.closingDate,
+    closingDate: req.body.closingDate,
+    workState: "Draft",
   };
   try {
     const response = await Data.create(data);
@@ -89,7 +91,7 @@ const UpdateExpired = async () => {
     for (let item of exp) {
       console.log(item.dataValues.id);
       await Data.update(
-        { status: "3" },
+        { status: "3", workState: "Closed" },
         {
           where: [{ id: item.dataValues.id }],
         }
@@ -149,6 +151,8 @@ const getAll = async (req, res) => {
 };
 
 const getOne = async (req, res) => {
+
+
   await UpdateExpired();
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
@@ -160,7 +164,8 @@ const getOne = async (req, res) => {
     ],
   });
   if (response) {
-    res.status(200).send(response);
+    const buttonaction = await getButtonAction("schedule",response.workState);
+    res.status(200).send(buttonaction);
   } else {
     res.status(400).json({
       status: false,
