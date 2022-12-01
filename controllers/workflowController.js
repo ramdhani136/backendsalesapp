@@ -259,6 +259,7 @@ const getButtonAction = async (doc, docrelasi, req) => {
 const permissionUpdateAction = async (workflow, state, req, doc) => {
   const role = await getRole(req);
 
+
   const getState = await db.actionstate.findOne({
     where: [{ id_workflow: workflow, id_state: state }],
     include: [
@@ -271,9 +272,10 @@ const permissionUpdateAction = async (workflow, state, req, doc) => {
     ],
   });
 
+
   if (getState) {
     if (getState.selfApproval) {
-      if (`${req.userId}` === `${doc.id_created}`) {
+      if (`${req.userId}` === `${doc.id_created}`||`${req.userId}` === `${doc.id_user}`) {
         return {
           status: true,
           data: { status: getState.docStatus, workState: getState.state.name },

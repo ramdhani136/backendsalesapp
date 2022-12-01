@@ -10,7 +10,7 @@ const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { List } = require("whatsapp-web.js");
 const { UpdateExpired } = require("./ScheduleController");
-const { getButtonAction } = require("./workflowController");
+const { getButtonAction, permissionUpdateAction } = require("./workflowController");
 const CallSheet = db.callsheets;
 
 const newCallSheetById = async (id, userId, type) => {
@@ -334,7 +334,37 @@ const getOneCallSheet = async (req, res) => {
 const updateCallSheet = async (req, res) => {
   await UpdateExpired();
   let id = req.params.id;
+  const getCallsheet = await db.callsheets.findOne({ where: { id: id } });
+  const { id_workflow, id_state } = req.body;
+  if (id_workflow && id_state) {
+    const permission = await permissionUpdateAction(
+      id_workflow,
+      id_state,
+      req,
+      getCallsheet
+    );
+
+    if (!getCallsheet) {
+      res.status(400).json({
+        status: false,
+        message: "Not found data",
+      });
+      return;
+    }
+    if (!permission.status) {
+      res.status(400).json({
+        status: false,
+        message: permission.msg,
+      });
+      return;
+    }
+    req.body.status=permission.data.status
+    req.body.workState=permission.data.workState
+  }
+ 
+
   const allData = await newCallSheet(req.userId, "callsheet");
+
   isResult = allData.filter((item) => item.id == id);
   const schedule = isResult[0].id_listSchedule;
   if (isResult.length > 0) {
@@ -364,6 +394,7 @@ const updateCallSheet = async (req, res) => {
         return;
       }
       if (
+        listSchedule.dataValues.schedule.status !== "1"&&
         listSchedule.dataValues.doc !== null &&
         listSchedule.dataValues.doc !== ""
       ) {
