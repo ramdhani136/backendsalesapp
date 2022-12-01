@@ -356,7 +356,7 @@ const updateCallSheet = async (req, res) => {
       if (listSchedule.dataValues.schedule.status !== "1") {
         res.status(400).json({
           status: false,
-          message: `Shedule ${isResult[0].schedule} has been closed`,
+          message: `Shedule ${isResult[0].schedule} not active`,
         });
         return;
       }

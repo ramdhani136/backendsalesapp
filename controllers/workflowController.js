@@ -185,7 +185,7 @@ const getRole = async (req) => {
 };
 
 const getButtonAction = async (doc, docrelasi, req) => {
-  const finalroleuser = getRole(req);
+  const finalroleuser =await getRole(req);
   const workflow = await Data.findOne({
     where: [{ status: 1 }, { doc: doc }],
   });
