@@ -5,7 +5,10 @@ const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { schedule } = require("../models");
 const moment = require("moment/moment");
-const { getButtonAction } = require("./workflowController");
+const {
+  getButtonAction,
+  permissionUpdateAction,
+} = require("./workflowController");
 
 const Data = db.schedule;
 
@@ -83,7 +86,7 @@ const UpdateExpired = async () => {
           [Op.lt]: now,
         },
       },
-      { status: ["1"]},
+      { status: ["1"] },
     ],
   });
 
@@ -173,8 +176,55 @@ const getOne = async (req, res) => {
 };
 
 const update = async (req, res) => {
-  const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
+  const isUser = await permissionUser(req.userId, "schedule");
+  const getSchedule = await Data.findOne({ where: { name: id } });
+
+  const { id_workflow, id_state } = req.body;
+  if (id_workflow && id_state) {
+    const permission = await permissionUpdateAction(
+      id_workflow,
+      id_state,
+      req,
+      getSchedule
+    );
+    if (!getSchedule) {
+      res.status(400).json({
+        status: false,
+        message: "Not found data",
+      });
+      return;
+    }
+    if (!permission.status) {
+      res.status(400).json({
+        status: false,
+        message: permission.msg,
+      });
+      return;
+    }
+    try {
+      const data = await Data.update(permission.data, {
+        where: [{ name: id }],
+      });
+      if (data > 0) {
+        IO.setEmit("schedule", await newData(req.userId, "schedule"));
+        res.status(200).json({
+          status: true,
+          message: "successfully save data",
+          data: await newData(req.userId, "schedule"),
+        });
+      } else {
+        res.status(400).json({
+          status: false,
+          message: "No data or you don't have access to this document!",
+        });
+      }
+    } catch (error) {
+      res.status(400).json({ status: false, message: "failed to update data" });
+    }
+    return;
+  }
+
   try {
     const data = await Data.update(req.body, {
       where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],

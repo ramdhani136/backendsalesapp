@@ -1,6 +1,7 @@
 const db = require("../models");
 var IO = require("../app");
 const { permissionUser } = require("../middleware/getPermission");
+const { actionstate } = require("../models");
 
 const Data = db.workflow;
 
@@ -172,7 +173,7 @@ const deleteChildById = async (req, res) => {
   }
 };
 
-const getButtonAction = async (doc, docrelasi, req) => {
+const getRole = async (req) => {
   const roleuser = await db.roleusers.findAll({
     where: { id_user: req.userId },
   });
@@ -180,6 +181,11 @@ const getButtonAction = async (doc, docrelasi, req) => {
   const finalroleuser = roleuser.map((item) => {
     return item.id_roleprofile;
   });
+  return finalroleuser;
+};
+
+const getButtonAction = async (doc, docrelasi, req) => {
+  const finalroleuser = getRole(req);
   const workflow = await Data.findOne({
     where: [{ status: 1 }, { doc: doc }],
   });
@@ -247,6 +253,50 @@ const getButtonAction = async (doc, docrelasi, req) => {
   }
 };
 
+const permissionUpdateAction = async (workflow, state, req, doc) => {
+  const role =await getRole(req);
+
+  const getState = await db.actionstate.findOne({
+    where: [{ id_workflow: workflow, id_state: state }],
+    include: [
+      {
+        model: db.workflowstate,
+        as: "state",
+        attributes: ["name"],
+      },
+      { model: db.roleprofiles, as: "role", attributes: ["name"] },
+    ],
+  });
+
+  if (getState) {
+    if (getState.selfApproval) {
+      if (`${req.userId}` === `${doc.id_created}`) {
+        return {
+          status: true,
+          data: { status: getState.docStatus, workState: getState.state.name },
+        };
+      }
+    }
+    if( getState.role.name==="All"){
+      return {
+        status: true,
+        data: { status: getState.docStatus, workState: getState.state.name },
+      };
+    }
+    if (role.length) {
+      if (`${role}` === `${getState.id_role}`) {
+        return {
+          status: true,
+          data: { status: getState.docStatus, workState: getState.state.name },
+        };
+      }
+    }
+    return { status: false, msg: "Not Permission to change this state!" };
+  } else {
+    return { status: false, msg: "Not found next state!" };
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -256,4 +306,5 @@ module.exports = {
   disableWorkflow,
   deleteChildById,
   getButtonAction,
+  permissionUpdateAction,
 };
