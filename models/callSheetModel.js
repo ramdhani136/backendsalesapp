@@ -84,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     isSurvey: { type: DataTypes.ENUM("0", "1", "2", "3"), defaultValue: "0" },
     status: {
-      type: DataTypes.ENUM("0", "1", "2"),
+      type: DataTypes.ENUM("0", "1", "2","3"),
       defaultValue: "0",
       allowNull: false,
     },

@@ -10,6 +10,7 @@ const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { List } = require("whatsapp-web.js");
 const { UpdateExpired } = require("./ScheduleController");
+const { getButtonAction } = require("./workflowController");
 const CallSheet = db.callsheets;
 
 const newCallSheetById = async (id, userId, type) => {
@@ -319,6 +320,8 @@ const getOneCallSheet = async (req, res) => {
     order: [["id", "DESC"]],
   });
   if (callsheets) {
+    const buttonaction = await getButtonAction("callsheet", callsheets, req);
+    callsheets.dataValues.action = buttonaction;
     res.status(200).send(callsheets);
   } else {
     res.status(400).json({
@@ -637,6 +640,8 @@ const getByName = async (req, res) => {
     order: [["id", "DESC"]],
   });
   if (callsheets) {
+    const buttonaction = await getButtonAction("callsheet", callsheets, req);
+    callsheets.dataValues.action = buttonaction;
     res.status(200).send(callsheets);
   } else {
     res.status(400).json({

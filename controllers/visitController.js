@@ -14,6 +14,7 @@ const fs = require("fs");
 const cekData = require("../utils/cenData");
 const { List } = require("whatsapp-web.js");
 const { notif } = require("../models");
+const { getButtonAction } = require("./workflowController");
 
 const Visits = db.visits;
 
@@ -408,6 +409,8 @@ const getOneVisit = async (req, res) => {
     order: [["id", "DESC"]],
   });
   if (visits) {
+    const buttonaction = await getButtonAction("visit", visits, req);
+    visits.dataValues.action = buttonaction;
     res.status(200).send(visits);
   } else {
     res.status(400).json({
@@ -700,6 +703,8 @@ const getByName = async (req, res) => {
     order: [["id", "DESC"]],
   });
   if (visits) {
+    const buttonaction = await getButtonAction("visit", visits, req);
+    visits.dataValues.action = buttonaction;
     res.status(200).send(visits);
   } else {
     res.status(400).json({

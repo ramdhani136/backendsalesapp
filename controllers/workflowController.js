@@ -185,7 +185,7 @@ const getRole = async (req) => {
 };
 
 const getButtonAction = async (doc, docrelasi, req) => {
-  const finalroleuser =await getRole(req);
+  const finalroleuser = await getRole(req);
   const workflow = await Data.findOne({
     where: [{ status: 1 }, { doc: doc }],
   });
@@ -220,7 +220,10 @@ const getButtonAction = async (doc, docrelasi, req) => {
     let allfilter = [];
     for (let listtrans of transition) {
       if (listtrans.dataValues.selfApproval) {
-        if (docrelasi.dataValues.id_created === req.userId) {
+        if (
+          docrelasi.dataValues.id_created === req.userId ||
+          docrelasi.dataValues.id_user === req.userId
+        ) {
           allfilter.push(listtrans);
         }
       } else {
@@ -254,7 +257,7 @@ const getButtonAction = async (doc, docrelasi, req) => {
 };
 
 const permissionUpdateAction = async (workflow, state, req, doc) => {
-  const role =await getRole(req);
+  const role = await getRole(req);
 
   const getState = await db.actionstate.findOne({
     where: [{ id_workflow: workflow, id_state: state }],
@@ -277,7 +280,7 @@ const permissionUpdateAction = async (workflow, state, req, doc) => {
         };
       }
     }
-    if( getState.role.name==="All"){
+    if (getState.role.name === "All") {
       return {
         status: true,
         data: { status: getState.docStatus, workState: getState.state.name },
