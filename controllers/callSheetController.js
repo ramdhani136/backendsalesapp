@@ -415,7 +415,7 @@ const updateCallSheet = async (req, res) => {
     if (
       schedule &&
       isResult[0].status === "1" &&
-      (req.body.status === "2" || req.body.status === "0")
+      (req.body.status === "2" || req.body.status === "0" ||req.body.status === "3"  )
     ) {
       const listSchedule = await db.listschedule.findOne({
         where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
@@ -430,7 +430,7 @@ const updateCallSheet = async (req, res) => {
       if (listSchedule.dataValues.schedule.status !== "1") {
         res.status(400).json({
           status: false,
-          message: `Shedule ${isResult[0].schedule} has been closed`,
+          message: `Shedule ${isResult[0].schedule} not active`,
         });
         return;
       }
@@ -572,7 +572,7 @@ const deleteCallSheet = async (req, res) => {
       if (listSchedule.dataValues.schedule.dataValues.status !== "1") {
         res.status(400).json({
           status: false,
-          message: ` Schedule ${listSchedule.dataValues.schedule.dataValues.name} has been close `,
+          message: ` Schedule ${listSchedule.dataValues.schedule.dataValues.name} not active `,
         });
         return;
       }

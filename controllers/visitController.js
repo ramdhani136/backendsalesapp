@@ -14,7 +14,11 @@ const fs = require("fs");
 const cekData = require("../utils/cenData");
 const { List } = require("whatsapp-web.js");
 const { notif } = require("../models");
-const { getButtonAction } = require("./workflowController");
+const {
+  getButtonAction,
+  permissionUpdateAction,
+} = require("./workflowController");
+const { UpdateExpired } = require("./ScheduleController");
 
 const Visits = db.visits;
 
@@ -69,7 +73,6 @@ const newVisitById = async (id, userId, type) => {
 };
 
 const newVisit = async (userId, type) => {
-  
   const isBranch = await permissionBranch(userId, type);
   const isCG = await permissionCG(userId, type);
   const isCustomer = await permissionCustomer(userId, type);
@@ -421,11 +424,118 @@ const getOneVisit = async (req, res) => {
 };
 
 const updateVisit = async (req, res) => {
+  await UpdateExpired();
   let id = req.params.id;
+
+  const getVisit = await db.visits.findOne({ where: { id: id } });
+  const { id_workflow, id_state } = req.body;
+  if (id_workflow && id_state) {
+    const permission = await permissionUpdateAction(
+      id_workflow,
+      id_state,
+      req,
+      getVisit
+    );
+
+    if (!getVisit) {
+      res.status(400).json({
+        status: false,
+        message: "Not found data",
+      });
+      return;
+    }
+    if (!permission.status) {
+      res.status(400).json({
+        status: false,
+        message: permission.msg,
+      });
+      return;
+    }
+    req.body.status = permission.data.status;
+    req.body.workState = permission.data.workState;
+  }
+
   const allData = await newVisit(req.userId, "visit");
   isResult = allData.filter((item) => item.id == id);
-
+  const schedule = isResult[0].id_listSchedule;
   if (isResult.length > 0) {
+    if (schedule && req.body.status === "1") {
+      const listSchedule = await db.listschedule.findOne({
+        where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
+        include: [
+          {
+            model: db.schedule,
+            as: "schedule",
+            attributes: ["id", "name", "status"],
+          },
+        ],
+      });
+      if (!listSchedule) {
+        res.status(400).json({
+          status: false,
+          message: "Schedule not found",
+        });
+        return;
+      }
+      if (listSchedule.dataValues.schedule.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} not active`,
+        });
+        return;
+      }
+      if (
+        listSchedule.dataValues.schedule.status !== "1" &&
+        listSchedule.dataValues.doc !== null &&
+        listSchedule.dataValues.doc !== ""
+      ) {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} has been closed with doc ${listSchedule.dataValues.doc}`,
+        });
+        return;
+      }
+
+      await db.listschedule.update(
+        { doc: isResult[0].name },
+        {
+          where: { id: schedule },
+        }
+      );
+    }
+
+    if (
+      schedule &&
+      isResult[0].status === "1" &&
+      (req.body.status === "2" ||
+        req.body.status === "0" ||
+        req.body.status === "3")
+    ) {
+      const listSchedule = await db.listschedule.findOne({
+        where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
+        include: [
+          {
+            model: db.schedule,
+            as: "schedule",
+            attributes: ["id", "name", "status"],
+          },
+        ],
+      });
+      if (listSchedule.dataValues.schedule.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: `Shedule ${isResult[0].schedule} not active`,
+        });
+        return;
+      }
+      await db.listschedule.update(
+        { doc: "" },
+        {
+          where: { id: schedule },
+        }
+      );
+    }
+
     try {
       await db.visits.update(req.body, {
         where: { id: id },
@@ -482,75 +592,75 @@ const updateVisit = async (req, res) => {
             .json({ status: false, message: `${error.table} is required` });
         }
       } else {
-        // IO.setEmit("visits", await newVisit(req.userId, "visit"));
-        //         if (
-        //           isResult[0].isSurvey === "0" &&
-        //           isResult[0].status === "0" &&
-        //           req.body.status === "1"
-        //         ) {
-        //           var myModul = await require("../utils/waBot");
+        IO.setEmit("visits", await newVisit(req.userId, "visit"));
+        if (
+          isResult[0].isSurvey === "0" &&
+          isResult[0].status === "0" &&
+          req.body.status === "1"
+        ) {
+          var myModul = await require("../utils/waBot");
 
-        //           const message = `Halo perkenalkan saya Vika (bot system) dari Pt. Ekatunggal 🙏
-        // Mohon berikan rating dari Bapak/Ibu tentang komunikasi
-        // yang sudah dilakukan oleh tim sales kami.
-        // dari skala (tidak baik) 1-5 (sangat baik)
-        // `;
-        //           let sections = [
-        //             {
-        //               title: "Silahkan berikan penilaian :)",
-        //               rows: [
-        //                 {
-        //                   title: `#${isResult[0].name}_1`,
-        //                   description: "⭐",
-        //                 },
-        //                 {
-        //                   title: `#${isResult[0].name}_2`,
-        //                   description: "⭐⭐",
-        //                 },
-        //                 {
-        //                   title: `#${isResult[0].name}_3`,
-        //                   description: "⭐⭐⭐",
-        //                 },
-        //                 {
-        //                   title: `#${isResult[0].name}_4`,
-        //                   description: "⭐⭐⭐⭐",
-        //                 },
-        //                 {
-        //                   title: `#${isResult[0].name}_5`,
-        //                   description: "⭐⭐⭐⭐⭐",
-        //                 },
-        //               ],
-        //             },
-        //           ];
-        //           let list = new List(
-        //             message,
-        //             "Rate",
-        //             sections,
-        //             `${isResult[0].name}`,
-        //             "footer"
-        //           );
-        //           const send = await myModul.kirimpesan(
-        //             isResult[0].phone,
-        //             // isResult[0].name
-        //             list
-        //           );
+          const message = `Halo perkenalkan saya Vika (bot system) dari Pt. Ekatunggal 🙏
+        Mohon berikan rating dari Bapak/Ibu tentang komunikasi
+        yang sudah dilakukan oleh tim sales kami.
+        dari skala (tidak baik) 1-5 (sangat baik)
+        `;
+          let sections = [
+            {
+              title: "Silahkan berikan penilaian :)",
+              rows: [
+                {
+                  title: `#${isResult[0].name}_1`,
+                  description: "⭐",
+                },
+                {
+                  title: `#${isResult[0].name}_2`,
+                  description: "⭐⭐",
+                },
+                {
+                  title: `#${isResult[0].name}_3`,
+                  description: "⭐⭐⭐",
+                },
+                {
+                  title: `#${isResult[0].name}_4`,
+                  description: "⭐⭐⭐⭐",
+                },
+                {
+                  title: `#${isResult[0].name}_5`,
+                  description: "⭐⭐⭐⭐⭐",
+                },
+              ],
+            },
+          ];
+          let list = new List(
+            message,
+            "Rate",
+            sections,
+            `${isResult[0].name}`,
+            "footer"
+          );
+          const send = await myModul.kirimpesan(
+            isResult[0].phone,
+            // isResult[0].name
+            list
+          );
 
-        //           if (send) {
-        //             await db.visits.update(
-        //               { isSurvey: "1" },
-        //               {
-        //                 where: { id: id },
-        //               }
-        //             );
-        //           } else {
-        //             await db.visits.update(
-        //               { isSurvey: "2" },
-        //               {
-        //                 where: { id: id },
-        //               }
-        //             );
-        //           }
-        //         }
+          if (send) {
+            await db.visits.update(
+              { isSurvey: "1" },
+              {
+                where: { id: id },
+              }
+            );
+          } else {
+            await db.visits.update(
+              { isSurvey: "2" },
+              {
+                where: { id: id },
+              }
+            );
+          }
+        }
         IO.setEmit("visits", await newVisitById(id, req.userId, "visit"));
         const setNotif = await notif.create({
           id_user: req.userId,
@@ -590,6 +700,26 @@ const deleteVisit = async (req, res) => {
   const allData = await newVisit(req.userId, "visit");
   isResult = allData.filter((item) => item.id == id);
   if (isResult.length > 0) {
+    const listSchedule = await db.listschedule.findOne({
+      where: { doc: isResult[0].dataValues.name },
+      include: [
+        {
+          model: db.schedule,
+          as: "schedule",
+          attributes: ["id", "name", "status"],
+        },
+      ],
+    });
+
+    if (listSchedule) {
+      if (listSchedule.dataValues.schedule.dataValues.status !== "1") {
+        res.status(400).json({
+          status: false,
+          message: ` Schedule ${listSchedule.dataValues.schedule.dataValues.name} not active `,
+        });
+        return;
+      }
+    }
     try {
       await db.visits.destroy({
         where: { id: id },
@@ -631,6 +761,19 @@ const deleteVisit = async (req, res) => {
 
       if (setNotif) {
         IO.setEmit("notif", true);
+      }
+
+      if (
+        isResult[0].dataValues.status === "1" &&
+        isResult[0].dataValues.id_listSchedule !== null &&
+        isResult[0].dataValues.id_listSchedule !== ""
+      ) {
+        await db.listschedule.update(
+          { doc: "" },
+          {
+            where: { doc: isResult[0].dataValues.name },
+          }
+        );
       }
       res.status(200).json({
         status: true,
@@ -677,7 +820,7 @@ const getByName = async (req, res) => {
       {
         model: db.users,
         as: "user",
-        attributes: ["id", "name",  "img", "username", "email", "phone"],
+        attributes: ["id", "name", "img", "username", "email", "phone"],
       },
       {
         model: db.branch,
