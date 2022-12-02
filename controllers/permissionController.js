@@ -20,7 +20,7 @@ const create = async (req, res) => {
       ? req.body.id_user.toString() +
         req.body.allow.toString() +
         req.body.doc.toString() +
-        req.body.value.toString() 
+        req.body.value.toString()
       : req.body.id_user.toString() +
         req.body.allow.toString() +
         req.body.value.toString(),
@@ -97,7 +97,6 @@ const getOneData = async (req, res) => {
 };
 
 const updateData = async (req, res) => {
-  
   let id = req.params.id;
   const isUser = await permissionUser(req.userId, "permission");
   const isWhere = [isUser.length > 0 && { id_user: isUser }, { id: id }];
@@ -106,6 +105,14 @@ const updateData = async (req, res) => {
   if (isUser.length > 0) {
     finalWhere = isWhere;
   }
+  req.body.uniqid = req.body.doc
+    ? req.body.id_user.toString() +
+      req.body.allow.toString() +
+      req.body.doc.toString() +
+      req.body.value.toString()
+    : req.body.id_user.toString() +
+      req.body.allow.toString() +
+      req.body.value.toString();
   try {
     const data = await IsData.update(req.body, { where: finalWhere });
     if (data > 0) {
