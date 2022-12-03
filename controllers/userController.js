@@ -246,12 +246,12 @@ const register = async (req, res) => {
 
       let typeimage = req.file.originalname.slice(istitik, 200);
       try {
-        const compressedImage = await path.join(
+        const compressedImage = path.join(
           __dirname,
           "../public/users",
           `${user.dataValues.name}${typeimage}`
         );
-        await sharp(req.file.path)
+        sharp(req.file.path)
           .resize(640, 480, {
             fit: sharp.fit.inside,
             withoutEnlargement: true,
@@ -361,7 +361,7 @@ const login = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       {
         // expiresIn: "20s",
-        expiresIn: "324000s",
+        expiresIn: "32400000000000s",
       }
     );
 
@@ -369,7 +369,7 @@ const login = async (req, res) => {
       { userId, name, username, email, phone, img, role, erpToken },
       process.env.REFRESH_TOKEN_SECRET,
       {
-        expiresIn: "90d",
+        expiresIn: "900d",
       }
     );
     await Users.update(
@@ -466,7 +466,7 @@ const refreshToken = async (req, res) => {
           process.env.ACCESS_TOKEN_SECRET,
           {
             // expiresIn: "20s",
-            expiresIn: "324000s",
+            expiresIn: "32400000000000s",
           }
         );
 
@@ -496,7 +496,7 @@ const updateData = async (req, res) => {
   if (req.body.password) {
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(req.body.password, salt);
-    req.body.password = await hashPassword;
+    req.body.password = hashPassword;
   }
 
   let result = await newUsersById(id, req.userId, "user");
@@ -510,12 +510,12 @@ const updateData = async (req, res) => {
 
         let typeimage = req.file.originalname.slice(istitik, 200);
         try {
-          const compressedImage = await path.join(
+          const compressedImage = path.join(
             __dirname,
             "../public/users",
             `${result[0].name}${typeimage}`
           );
-          await sharp(req.file.path)
+          sharp(req.file.path)
             .resize(640, 480, {
               fit: sharp.fit.inside,
               withoutEnlargement: true,
