@@ -98,6 +98,10 @@ const getBySchedule = async (req, res) => {
       updatedAt: item.dataValues.updatedAt,
       closeAt: docref ? docref.dataValues.updatedAt : "",
       user: docref ? docref.dataValues.user.name : "",
+      priceNote: docref ? docref.dataValues.priceNote : "",
+      remindOrderNote: docref ? docref.dataValues.remindOrderNote : "",
+      billingNote: docref ? docref.dataValues.billingNote : "",
+      compInformNote: docref ? docref.dataValues.compInformNote : "",
       status: item.dataValues.doc ? "Closed" : "Open",
     };
   });
