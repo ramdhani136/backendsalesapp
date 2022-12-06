@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
       index: true,
       allowNull: false,
     },
+    activeDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
     closingDate: {
       type: DataTypes.DATEONLY,
       allowNull: false,

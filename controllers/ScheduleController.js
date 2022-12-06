@@ -61,6 +61,7 @@ const create = async (req, res) => {
     notes: req.body.notes,
     id_created: req.body.id_created,
     closingDate: req.body.closingDate,
+    activeDate: req.body.activeDate,
     workState: "Draft",
   };
   try {
