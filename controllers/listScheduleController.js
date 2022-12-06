@@ -2,7 +2,7 @@ const db = require("../models");
 var IO = require("../app");
 const { Op } = require("sequelize");
 const { UpdateExpired } = require("./ScheduleController");
-
+const moment = require("moment/moment");
 const Data = db.listschedule;
 
 const newData = async () => {
@@ -205,10 +205,11 @@ const getAll = async (req, res) => {
 };
 
 const getByType = async (req, res) => {
+  const now = moment(`${new Date()}`).format("YYYY-MM-DD");
   await UpdateExpired();
   const type = req.params.type;
   let result = await Data.findAll({
-    where: [{ doc: { [Op.or]: [null, ""] } }, { type: type }],
+    where: [{ doc: { [Op.or]: [null, ""] } }, { type: type },],
     order: [["id", "DESC"]],
     include: [
       {
@@ -227,7 +228,15 @@ const getByType = async (req, res) => {
         model: db.schedule,
         as: "schedule",
         attributes: ["id", "name", "status"],
+        where: [
+          {
+            activeDate: {
+              [Op.lte]: now,
+            },
+          },
+        ],
         include: [
+          
           {
             model: db.usergroup,
             as: "usergroup",
