@@ -9,6 +9,7 @@ const newData = async (userId, type) => {
   const isWhere = [isUser.length > 0 && { id_created: isUser }];
   let finalWhere = [];
   if (isUser.length > 0) {
+    isUser.push(userId);
     finalWhere = isWhere;
   }
   return await Group.findAll({
@@ -28,13 +29,11 @@ const create = async (req, res) => {
   try {
     const response = await Group.create(data);
     IO.setEmit("usergroup", await newData(req.userId, "usergroup"));
-    res
-      .status(200)
-      .json({
-        status: true,
-        message: "successfully save data",
-        data: response,
-      });
+    res.status(200).json({
+      status: true,
+      message: "successfully save data",
+      data: response,
+    });
   } catch (error) {
     res.status(400).json({ status: false, message: error.errors[0].message });
   }
@@ -42,9 +41,11 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   const isUser = await permissionUser(req.userId, "usergroup");
+
   const isWhere = [isUser.length > 0 && { id_created: isUser }];
   let finalWhere = [];
   if (isUser.length > 0) {
+    isUser.push(req.userId);
     finalWhere = isWhere;
   }
   let data = await Group.findAll({
@@ -58,6 +59,9 @@ const getAll = async (req, res) => {
 
 const getOne = async (req, res) => {
   const isUser = await permissionUser(req.userId, "usergroup");
+  if (isUser.length > 0) {
+    isUser.push(req.userId);
+  }
   let id = req.params.id;
   let response = await Group.findOne({
     where: [{ id: id }, isUser.length > 0 && { id_created: isUser }],
@@ -75,6 +79,9 @@ const getOne = async (req, res) => {
 
 const update = async (req, res) => {
   const isUser = await permissionUser(req.userId, "usergroup");
+  if (isUser.length > 0) {
+    isUser.push(req.userId);
+  }
   let id = req.params.id;
   try {
     const data = await Group.update(req.body, {
@@ -98,9 +105,11 @@ const update = async (req, res) => {
   }
 };
 
-
 const deleteData = async (req, res) => {
   const isUser = await permissionUser(req.userId, "usergroup");
+  if (isUser.length > 0) {
+    isUser.push(req.userId);
+  }
   let id = req.params.id;
   try {
     const hapus = await Group.destroy({
@@ -129,5 +138,5 @@ module.exports = {
   getAll,
   getOne,
   update,
-  deleteData
+  deleteData,
 };
