@@ -142,6 +142,10 @@ const getAll = async (req, res) => {
           "workState",
           "notes",
         ],
+         include: [
+      { model: db.users, as: "user", attributes: ["id", "name"] },
+      { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
+    ],
       },
     ],
   });

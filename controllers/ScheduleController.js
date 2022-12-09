@@ -132,8 +132,8 @@ const getAll = async (req, res) => {
     where: finalWhere,
     order: [["id", "DESC"]],
     include: [
-      { model: db.users, as: "user", attributes: ["id", "name"] },
-      { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
+      { model: db.users, as: "user", attributes: [ "name"] },
+      { model: db.usergroup, as: "usergroup", attributes: [ "name"] },
     ],
   });
   let finalData = [];
