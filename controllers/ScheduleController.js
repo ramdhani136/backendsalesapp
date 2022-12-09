@@ -3,7 +3,7 @@ const { permissionUser } = require("../middleware/getPermission");
 var IO = require("../app");
 const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
-const { schedule } = require("../models");
+const { schedule, permission } = require("../models");
 const moment = require("moment/moment");
 const {
   getButtonAction,
@@ -123,17 +123,22 @@ const getListSchedule = async (id) => {
 const getAll = async (req, res) => {
   await UpdateExpired();
   const isUser = await permissionUser(req.userId, "schedule");
-  const isWhere = [isUser.length > 0 && { id_created: isUser }];
-  let finalWhere = [];
-  if (isUser.length > 0) {
-    finalWhere = isWhere;
-  }
   let result = await Data.findAll({
-    where: finalWhere,
     order: [["id", "DESC"]],
     include: [
-      { model: db.users, as: "user", attributes: [ "name"] },
-      { model: db.usergroup, as: "usergroup", attributes: [ "name"] },
+      { model: db.users, as: "user", attributes: ["name"] },
+      {
+        model: db.usergroup,
+        as: "usergroup",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.listusergroup,
+            as: "listusergroup",
+            attributes: ["id_user"],
+          },
+        ],
+      },
     ],
   });
   let finalData = [];
@@ -148,8 +153,24 @@ const getAll = async (req, res) => {
     }
   }
 
+  let permit = [];
+  finalData.map((item) => {
+    let inSchedule = item.usergroup.dataValues.listusergroup.find(
+      (i) => i.dataValues.id_user == req.userId
+    );
+
+    let inPermission = true;
+
+    if (isUser.length > 0) {
+      inPermission = isUser.find((data) => data == item.id_created);
+    }
+
+    if (inSchedule || item.id_created == req.userId || inPermission) {
+      permit.push(item);
+    }
+  });
   IO.setEmit("schedule", await newData(req.userId, "schedule"));
-  res.send(finalData);
+  res.send(permit);
 };
 
 const getOne = async (req, res) => {
@@ -157,20 +178,51 @@ const getOne = async (req, res) => {
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
   let response = await Data.findOne({
-    where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
+    where: [{ name: id }],
     include: [
       { model: db.users, as: "user", attributes: ["id", "name"] },
-      { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
+      {
+        model: db.usergroup,
+        as: "usergroup",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.listusergroup,
+            as: "listusergroup",
+            attributes: ["id_user"],
+          },
+        ],
+      },
     ],
   });
+
+  let inSchedule = response.dataValues.usergroup.dataValues.listusergroup.find(
+    (i) => i.dataValues.id_user == req.userId
+  );
+
+  let inPermission = true;
+
+  if (isUser.length > 0) {
+    inPermission = isUser.find((data) => data == response.dataValues.id_created);
+  }
+
+  
+
   if (response) {
     const buttonaction = await getButtonAction("schedule", response, req);
     response.dataValues.action = buttonaction;
+   if(inSchedule || inPermission || response.dataValues.id_created==req.body){
     res.status(200).send(response);
+   }else{
+    res.status(300).json({
+      status: false,
+      message: "Permission Denied!",
+    });
+   }
   } else {
     res.status(400).json({
       status: false,
-      message: "No data or you don't have access to this document!",
+      message: "No data!",
     });
   }
 };
