@@ -141,6 +141,7 @@ const getAll = async (req, res) => {
           "closingDate",
           "workState",
           "notes",
+          "status"
         ],
          include: [
       { model: db.users, as: "user", attributes: ["id", "name"] },
