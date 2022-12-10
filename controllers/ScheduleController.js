@@ -214,7 +214,7 @@ const getOne = async (req, res) => {
     if (
       inSchedule ||
       inPermission ||
-      response.dataValues.id_created == req.body
+      response.dataValues.id_created == req.userId
     ) {
       res.status(200).send(response);
     } else {
@@ -296,9 +296,6 @@ const update = async (req, res) => {
     return;
   }
 
-  let inSchedule = response.dataValues.usergroup.dataValues.listusergroup.find(
-    (i) => i.dataValues.id_user == req.userId
-  );
 
   let inPermission = true;
 
@@ -308,9 +305,8 @@ const update = async (req, res) => {
     );
   }
   if (
-    inSchedule ||
     inPermission ||
-    response.dataValues.id_created == req.body
+    response.dataValues.id_created == req.userId
   ) {
     await Data.update(req.body, {
       where: [{ name: id }],
@@ -377,9 +373,6 @@ const deleteData = async (req, res) => {
     return;
   }
 
-  let inSchedule = response.dataValues.usergroup.dataValues.listusergroup.find(
-    (i) => i.dataValues.id_user == req.userId
-  );
 
   let inPermission = true;
 
@@ -390,9 +383,8 @@ const deleteData = async (req, res) => {
   }
 
   if (
-    inSchedule ||
     inPermission ||
-    response.dataValues.id_created == req.body
+    response.dataValues.id_created == req.userId
   ) {
     const hapus = await Data.destroy({
       where: [{ name: id }],
@@ -417,26 +409,6 @@ const deleteData = async (req, res) => {
     message: "You dont have permission!",
   });
 
-  // try {
-  //   const hapus = await Data.destroy({
-  //     where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
-  //   });
-  //   if (hapus > 0) {
-  //     IO.setEmit("schedule", await newData(req.userId, "schedule"));
-  //     res.status(200).json({
-  //       status: true,
-  //       message: "successfully delete data",
-  //       data: await newData(req.userId, "schedule"),
-  //     });
-  //   } else {
-  //     res.status(400).json({
-  //       status: false,
-  //       message: "No data or you don't have access to this document!",
-  //     });
-  //   }
-  // } catch (error) {
-  //   res.status(400).json({ status: false, message: "failed to delete data" });
-  // }
 };
 
 module.exports = {
