@@ -7,6 +7,7 @@ const {
 } = require("../middleware/getPermission");
 var IO = require("../app");
 const { Op } = require("sequelize");
+const { isPermission } = require("./permissionController");
 const Customers = db.customers;
 
 const newCustomer = async (userId, type) => {
@@ -307,6 +308,14 @@ const deleteCustomer = async (req, res) => {
   const isCustomer = await permissionCustomer(req.userId, "customer");
   const isUser = await permissionUser(req.userId, "customer");
   let id = req.params.id;
+  const getPermissionUser = await isPermission("customer", id);
+  if (getPermissionUser) {
+    res.status(400).json({
+      status: false,
+      message: "Failed , data is related to permission user",
+    });
+    return
+  }
   try {
     const hapus = await Customers.destroy({
       where: [

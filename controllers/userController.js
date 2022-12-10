@@ -6,6 +6,7 @@ var IO = require("../app");
 const Users = db.users;
 const sharp = require("sharp");
 const path = require("path");
+const { isPermission } = require("./permissionController");
 
 const newUsers = async (userId, type) => {
   const isUser = await permissionUser(userId, type);
@@ -565,6 +566,14 @@ const updateData = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   let id = req.params.id;
+  const getPermissionUser = await isPermission("user", id);
+  if (getPermissionUser) {
+    res.status(400).json({
+      status: false,
+      message: "Failed , data is related to permission user",
+    });
+    return
+  }
   try {
     const result = await db.users.destroy({
       where: { id: id },

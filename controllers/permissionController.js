@@ -156,6 +156,12 @@ const deleteData = async (req, res) => {
   }
 };
 
+const isPermission = async (allow, value) => {
+  return await db.permission.findOne({where:[
+    {allow:allow}, {value:value}
+  ]});
+};
+
 module.exports = {
   create,
   getAllData,
@@ -163,4 +169,5 @@ module.exports = {
   updateData,
   deleteData,
   getByUser,
+  isPermission,
 };

@@ -1,6 +1,7 @@
 const db = require("../models");
 const { permissionUser } = require("../middleware/getPermission");
 var IO = require("../app");
+const { isPermission } = require("./permissionController");
 
 const Group = db.usergroup;
 
@@ -111,6 +112,14 @@ const deleteData = async (req, res) => {
     isUser.push(req.userId);
   }
   let id = req.params.id;
+  const getPermissionUser = await isPermission("usergroup", id);
+  if (getPermissionUser) {
+    res.status(400).json({
+      status: false,
+      message: "Failed , data is related to permission user",
+    });
+    return
+  }
   try {
     const hapus = await Group.destroy({
       where: [{ id: id }, isUser.length > 0 && { id_created: isUser }],

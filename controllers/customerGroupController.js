@@ -8,6 +8,7 @@ const {
 } = require("../middleware/getPermission");
 var IO = require("../app");
 const { Op } = require("sequelize");
+const { isPermission } = require("./permissionController");
 const CustomerGroup = db.customergroup;
 
 const newCG = async (userId, type) => {
@@ -129,6 +130,14 @@ const getByBranch = async (req, res) => {
 const deleteCG = async (req, res) => {
   const isBranch = await permissionBranch(req.userId, "customergroup");
   let id = req.params.id;
+  const getPermissionUser = await isPermission("customergroup", id);
+  if (getPermissionUser) {
+    res.status(400).json({
+      status: false,
+      message: "Failed , data is related to permission user",
+    });
+    return
+  }
   try {
     const hapus = await CustomerGroup.destroy({
       where: [{ id: id }, isBranch.length > 0 && { id_branch: isBranch }],

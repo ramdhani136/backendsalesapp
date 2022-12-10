@@ -2,6 +2,7 @@ const db = require("../models");
 const { permissionBranch } = require("../middleware/getPermission");
 var IO = require("../app");
 const { Op } = require("sequelize");
+const { isPermission } = require("./permissionController");
 
 const Branch = db.branch;
 
@@ -106,6 +107,14 @@ const updateBranch = async (req, res) => {
 const deleteBranch = async (req, res) => {
   const isBranch = await permissionBranch(req.userId, "branch");
   let id = req.params.id;
+  const getPermissionUser = await isPermission("branch", id);
+  if (getPermissionUser) {
+    res.status(400).json({
+      status: false,
+      message: "Failed , data is related to permission user",
+    });
+    return
+  }
   try {
     const hapus = await Branch.destroy({
       where: [{ id: id }, isBranch.length > 0 && { id: isBranch }],
