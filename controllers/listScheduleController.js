@@ -3,6 +3,7 @@ var IO = require("../app");
 const { Op } = require("sequelize");
 const { UpdateExpired } = require("./ScheduleController");
 const moment = require("moment/moment");
+const { permissionUser } = require("../middleware/getPermission");
 const Data = db.listschedule;
 
 const newData = async () => {
@@ -116,6 +117,44 @@ const getBySchedule = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
+  await UpdateExpired();
+  const isUser = await permissionUser(req.userId, "schedule");
+  let scheduleData = await db.schedule.findAll({
+    order: [["id", "DESC"]],
+    include: [
+      { model: db.users, as: "user", attributes: ["name"] },
+      {
+        model: db.usergroup,
+        as: "usergroup",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.listusergroup,
+            as: "listusergroup",
+            attributes: ["id_user"],
+          },
+        ],
+      },
+    ],
+  });
+
+  let permit = [];
+  scheduleData.map((item) => {
+    let inSchedule = item.usergroup.dataValues.listusergroup.find(
+      (i) => i.dataValues.id_user == req.userId
+    );
+
+    let inPermission = true;
+
+    if (isUser.length > 0) {
+      inPermission = isUser.find((data) => data == item.id_created);
+    }
+
+    if (inSchedule || item.id_created == req.userId || inPermission) {
+      permit.push(item);
+    }
+  });
+
   let result = await Data.findAll({
     order: [["id", "DESC"]],
     include: [
@@ -141,16 +180,25 @@ const getAll = async (req, res) => {
           "closingDate",
           "workState",
           "notes",
-          "status"
+          "status",
         ],
-         include: [
-      { model: db.users, as: "user", attributes: ["id", "name"] },
-      { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
-    ],
+        include: [
+          { model: db.users, as: "user", attributes: ["id", "name"] },
+          { model: db.usergroup, as: "usergroup", attributes: ["id", "name"] },
+        ],
       },
     ],
   });
-  let final = result.map(async (item) => {
+
+  let datafinal = [];
+  for (let itemCek of result) {
+    let isPermit = permit.find((e) => e.dataValues.name===itemCek.schedule.dataValues.name);
+    if(isPermit){
+      datafinal.push(itemCek);
+    }
+  }
+
+  let final = datafinal.map(async (item) => {
     let doc = item.dataValues.doc;
     let type = item.dataValues.type;
     let docref;
@@ -208,95 +256,6 @@ const getAll = async (req, res) => {
     data: finaldata,
   });
 };
-
-// const getAll = async (req, res) => {
-//   await UpdateExpired();
-//   let result = await Data.findAll({
-//     where: [{ doc: { [Op.or]: [null, ""] } }],
-//     order: [["id", "DESC"]],
-//     include: [
-//       {
-//         model: db.customers,
-//         as: "customer",
-//         attributes: ["id", "name"],
-//         include: [
-//           {
-//             model: db.customergroup,
-//             as: "customergroup",
-//             attributes: ["id", "name", "deskripsi", "status"],
-//           },
-//         ],
-//       },
-//       {
-//         model: db.schedule,
-//         as: "schedule",
-//         attributes: ["id", "name", "status"],
-//       },
-//     ],
-//   });
-
-//   const filterActive = result.filter(
-//     (item) => item.dataValues.schedule.status === "1"
-//   );
-//   let final = filterActive.map(async (item) => {
-//     let doc = item.dataValues.doc;
-//     let type = item.dataValues.type;
-//     let docref;
-//     if (doc !== null && doc !== "") {
-//       if (type === "visit") {
-//         docref = await db.visits.findOne({
-//           where: [{ name: `${doc}` }],
-//           include: [
-//             {
-//               model: db.users,
-//               as: "user",
-//               attributes: ["id", "name"],
-//             },
-//           ],
-//         });
-//       } else {
-//         docref = await db.callsheets.findOne({
-//           where: [{ name: `${doc}` }],
-//           include: [
-//             {
-//               model: db.users,
-//               as: "user",
-//               attributes: ["id", "name"],
-//             },
-//           ],
-//         });
-//       }
-//     }
-
-//     let scheduleClose = await db.schedule.findOne({
-//       where: [{ id: item.dataValues.id_schedule }],
-//     });
-
-//     return {
-//       id: item.dataValues.id,
-//       id_customer: item.dataValues.id_customer,
-//       customer: item.dataValues.customer,
-//       schedule: item.dataValues.schedule.name,
-//       id_schedule: item.dataValues.id_schedule,
-//       doc: item.dataValues.doc ? item.dataValues.doc : "",
-//       type: item.dataValues.type,
-//       createdAt: item.dataValues.createdAt,
-//       updatedAt: item.dataValues.closingDate,
-//       closeAt: docref ? docref.dataValues.updatedAt : "",
-//       user: docref ? docref.dataValues.user.name : "",
-//       status: item.dataValues.doc ? "Closed" : "Open",
-//       scheduleClose: scheduleClose.dataValues.closingDate,
-//     };
-//   });
-//   let finaldata = [];
-//   for (let x in final) {
-//     finaldata.push(await final[x]);
-//   }
-//   IO.setEmit("listSchedule", await newData());
-//   res.status(200).json({
-//     data: finaldata,
-//   });
-// };
 
 const getByType = async (req, res) => {
   const now = moment(`${new Date()}`).format("YYYY-MM-DD");
