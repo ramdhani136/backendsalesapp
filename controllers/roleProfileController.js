@@ -1,6 +1,9 @@
 const { Op } = require("sequelize");
 const db = require("../models");
-const { permissionBranch, permissionUser } = require("../middleware/getPermission");
+const {
+  permissionBranch,
+  permissionUser,
+} = require("../middleware/getPermission");
 var IO = require("../app");
 const RoleProfile = db.roleprofiles;
 
@@ -66,30 +69,29 @@ const create = async (req, res) => {
 };
 
 const getAllProfile = async (req, res) => {
-
-  const isAll = await RoleProfile.findOne({ where: { name: "All" } })
-  const isDisabled = await RoleProfile.findOne({ where: { name: "Disabled" } })
+  const isAll = await RoleProfile.findOne({ where: { name: "All" } });
+  const isDisabled = await RoleProfile.findOne({ where: { name: "Disabled" } });
   try {
     if (!isAll) {
       RoleProfile.create({
         name: "All",
         id_user: req.userId,
         id_branch: "1",
-      })
+      });
     }
     if (!isDisabled) {
       RoleProfile.create({
         name: "Disabled",
         id_user: req.userId,
         id_branch: "1",
-      })
+      });
     }
   } catch (error) {
     res.status(400).json({
       status: true,
       data: error,
     });
-    return
+    return;
   }
   const isBranch = await permissionBranch(req.userId, "roleprofile");
   const isUser = await permissionUser(req.userId, "roleprofile");
@@ -239,10 +241,30 @@ const deleteProfile = async (req, res) => {
   }
 };
 
+const createDefault = async (req, res) => {
+  const isResult = await db.roleprofiles.findOne({
+    where: { name: "System Manager" },
+  });
+  if (!isResult) {
+    try {
+      await db.roleprofiles.create({
+        name: "System Manager",
+        id_user: "1",
+        id_branch: "1",
+        status: "1",
+      });
+      res.sendStatus(200);
+    } catch (error) {
+      res.sendStatus(400);
+    }
+  }
+};
+
 module.exports = {
   create,
   getAllProfile,
   getOneProfile,
   updateProfile,
   deleteProfile,
+  createDefault,
 };

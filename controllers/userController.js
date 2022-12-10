@@ -6,7 +6,6 @@ var IO = require("../app");
 const Users = db.users;
 const sharp = require("sharp");
 const path = require("path");
-const { isPermission } = require("./permissionController");
 
 const newUsers = async (userId, type) => {
   const isUser = await permissionUser(userId, type);
@@ -167,58 +166,78 @@ const getUsers = async (req, res) => {
 const getUsersById = async (req, res) => {
   let id = req.params.id;
   const isUser = await permissionUser(req.userId, "user");
-  try {
-    const users = await Users.findAll({
-      where: [isUser.length > 0 && { id: isUser }, { id: id }],
-      include: [
-        {
-          model: db.roleusers,
-          as: "role",
-          attributes: ["id", "id_roleprofile", "status"],
-          include: [
-            {
-              model: db.roleprofiles,
-              as: "roleprofile",
-              attributes: ["id", "name", "status"],
-              include: [
-                {
-                  model: db.rolelists,
-                  as: "rolelist",
-                  attributes: [
-                    "id",
-                    "doc",
-                    "create",
-                    "read",
-                    "update",
-                    "delete",
-                    "amend",
-                    "submit",
-                    "report",
-                    "export",
-                    "status",
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      attributes: [
-        "id",
-        "name",
-        "username",
-        "email",
-        "phone",
-        "img",
-        "erpToken",
-        "status",
-      ],
+  const profile = await db.roleusers.findOne({
+    where: { id_user: req.userId },
+    include: [
+      {
+        model: db.roleprofiles,
+        as: "roleprofile",
+        attributes: ["id", "name"],
+        where: { name: "System Manager" },
+      },
+    ],
+  });
+  const users = await Users.findAll({
+    where: [isUser.length > 0 && { id: isUser }, { id: id }],
+    include: [
+      {
+        model: db.roleusers,
+        as: "role",
+        attributes: ["id", "id_roleprofile", "status"],
+        include: [
+          {
+            model: db.roleprofiles,
+            as: "roleprofile",
+            attributes: ["id", "name", "status"],
+            include: [
+              {
+                model: db.rolelists,
+                as: "rolelist",
+                attributes: [
+                  "id",
+                  "doc",
+                  "create",
+                  "read",
+                  "update",
+                  "delete",
+                  "amend",
+                  "submit",
+                  "report",
+                  "export",
+                  "status",
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    attributes: [
+      "id",
+      "name",
+      "username",
+      "email",
+      "phone",
+      "img",
+      "erpToken",
+      "status",
+    ],
+  });
+  if (!profile) {
+    const isDataUser = users.filter((item) => item.dataValues.id == req.userId);
+    if(isDataUser.length>0){
+      IO.setEmit("users", await newUsers(req.userId, "user"));
+      res.json({ users });
+      return
+    }
+    res.status(300).json({
+      status: false,
+      message: "Permission Denied!",
     });
-    IO.setEmit("users", await newUsers(req.userId, "user"));
-    res.json({ users });
-  } catch (err) {
-    res.json(err);
+    return;
   }
+  IO.setEmit("users", await newUsers(req.userId, "user"));
+  res.json({ users });
 };
 
 const register = async (req, res) => {
@@ -566,14 +585,6 @@ const updateData = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   let id = req.params.id;
-  const getPermissionUser = await isPermission("user", id);
-  if (getPermissionUser) {
-    res.status(400).json({
-      status: false,
-      message: "Failed , data is related to permission user",
-    });
-    return
-  }
   try {
     const result = await db.users.destroy({
       where: { id: id },

@@ -4,6 +4,7 @@ const profile = require("../controllers/roleProfileController");
 
 router.post("/", profile.create);
 router.get("/", profile.getAllProfile);
+router.get("/check", profile.createDefault);
 router.get("/:id", profile.getOneProfile);
 router.put("/:id", profile.updateProfile);
 router.delete("/:id", profile.deleteProfile);
