@@ -203,22 +203,26 @@ const getOne = async (req, res) => {
   let inPermission = true;
 
   if (isUser.length > 0) {
-    inPermission = isUser.find((data) => data == response.dataValues.id_created);
+    inPermission = isUser.find(
+      (data) => data == response.dataValues.id_created
+    );
   }
-
-  
 
   if (response) {
     const buttonaction = await getButtonAction("schedule", response, req);
     response.dataValues.action = buttonaction;
-   if(inSchedule || inPermission || response.dataValues.id_created==req.body){
-    res.status(200).send(response);
-   }else{
-    res.status(300).json({
-      status: false,
-      message: "Permission Denied!",
-    });
-   }
+    if (
+      inSchedule ||
+      inPermission ||
+      response.dataValues.id_created == req.body
+    ) {
+      res.status(200).send(response);
+    } else {
+      res.status(300).json({
+        status: false,
+        message: "Permission Denied!",
+      });
+    }
   } else {
     res.status(400).json({
       status: false,
@@ -230,7 +234,29 @@ const getOne = async (req, res) => {
 const update = async (req, res) => {
   let id = req.params.id;
   const isUser = await permissionUser(req.userId, "schedule");
-  const getSchedule = await Data.findOne({ where: { name: id } });
+  let response = await Data.findOne({
+    where: [{ name: id }],
+    include: [
+      { model: db.users, as: "user", attributes: ["id", "name"] },
+      {
+        model: db.usergroup,
+        as: "usergroup",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.listusergroup,
+            as: "listusergroup",
+            attributes: ["id_user"],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!response) {
+    res.status(400).json({ status: false, message: "Data not found" });
+    return;
+  }
 
   const { id_workflow, id_state } = req.body;
   if (id_workflow && id_state) {
@@ -238,15 +264,8 @@ const update = async (req, res) => {
       id_workflow,
       id_state,
       req,
-      getSchedule
+      response
     );
-    if (!getSchedule) {
-      res.status(400).json({
-        status: false,
-        message: "Not found data",
-      });
-      return;
-    }
     if (!permission.status) {
       res.status(400).json({
         status: false,
@@ -277,43 +296,68 @@ const update = async (req, res) => {
     return;
   }
 
-  try {
-    const data = await Data.update(req.body, {
-      where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
-    });
-    if (data > 0) {
-      IO.setEmit("schedule", await newData(req.userId, "schedule"));
-      res.status(200).json({
-        status: true,
-        message: "successfully save data",
-        data: await newData(req.userId, "schedule"),
-      });
-    } else {
-      res.status(400).json({
-        status: false,
-        message: "No data or you don't have access to this document!",
-      });
-    }
-  } catch (error) {
-    res.status(400).json({ status: false, message: "failed to update data" });
+  let inSchedule = response.dataValues.usergroup.dataValues.listusergroup.find(
+    (i) => i.dataValues.id_user == req.userId
+  );
+
+  let inPermission = true;
+
+  if (isUser.length > 0) {
+    inPermission = isUser.find(
+      (data) => data == response.dataValues.id_created
+    );
   }
+  if (
+    inSchedule ||
+    inPermission ||
+    response.dataValues.id_created == req.body
+  ) {
+    await Data.update(req.body, {
+      where: [{ name: id }],
+    });
+    IO.setEmit("schedule", await newData(req.userId, "schedule"));
+    res.status(200).json({
+      status: true,
+      message: "successfully save data",
+      data: await newData(req.userId, "schedule"),
+    });
+    return;
+  }
+
+  res.status(300).json({
+    status: false,
+    message: "You dont have permission!",
+  });
 };
 
 const deleteData = async (req, res) => {
   const isUser = await permissionUser(req.userId, "schedule");
   let id = req.params.id;
-  const getSchedule = await Data.findOne({
-    where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
+  let response = await Data.findOne({
+    where: [{ name: id }],
+    include: [
+      { model: db.users, as: "user", attributes: ["id", "name"] },
+      {
+        model: db.usergroup,
+        as: "usergroup",
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.listusergroup,
+            as: "listusergroup",
+            attributes: ["id_user"],
+          },
+        ],
+      },
+    ],
   });
-  if (!getSchedule) {
-    res.status(400).json({
-      status: false,
-      message: `Data not found or permission Denied `,
-    });
+
+  if (!response) {
+    res.status(400).json({ status: false, message: "Data not found" });
     return;
   }
-  const type = getSchedule.dataValues.type;
-  const name = getSchedule.dataValues.name;
+  const type = response.dataValues.type;
+  const name = response.dataValues.name;
   let relasiData;
   if (type === "callsheet") {
     relasiData = await db.callsheets.findOne({
@@ -333,9 +377,25 @@ const deleteData = async (req, res) => {
     return;
   }
 
-  try {
+  let inSchedule = response.dataValues.usergroup.dataValues.listusergroup.find(
+    (i) => i.dataValues.id_user == req.userId
+  );
+
+  let inPermission = true;
+
+  if (isUser.length > 0) {
+    inPermission = isUser.find(
+      (data) => data == response.dataValues.id_created
+    );
+  }
+
+  if (
+    inSchedule ||
+    inPermission ||
+    response.dataValues.id_created == req.body
+  ) {
     const hapus = await Data.destroy({
-      where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
+      where: [{ name: id }],
     });
     if (hapus > 0) {
       IO.setEmit("schedule", await newData(req.userId, "schedule"));
@@ -344,15 +404,39 @@ const deleteData = async (req, res) => {
         message: "successfully delete data",
         data: await newData(req.userId, "schedule"),
       });
-    } else {
-      res.status(400).json({
-        status: false,
-        message: "No data or you don't have access to this document!",
-      });
+      return;
     }
-  } catch (error) {
-    res.status(400).json({ status: false, message: "failed to delete data" });
+    res.status(400).json({
+      status: false,
+      message: "Connection Error!",
+    });
+    return;
   }
+  res.status(300).json({
+    status: false,
+    message: "You dont have permission!",
+  });
+
+  // try {
+  //   const hapus = await Data.destroy({
+  //     where: [{ name: id }, isUser.length > 0 && { id_created: isUser }],
+  //   });
+  //   if (hapus > 0) {
+  //     IO.setEmit("schedule", await newData(req.userId, "schedule"));
+  //     res.status(200).json({
+  //       status: true,
+  //       message: "successfully delete data",
+  //       data: await newData(req.userId, "schedule"),
+  //     });
+  //   } else {
+  //     res.status(400).json({
+  //       status: false,
+  //       message: "No data or you don't have access to this document!",
+  //     });
+  //   }
+  // } catch (error) {
+  //   res.status(400).json({ status: false, message: "failed to delete data" });
+  // }
 };
 
 module.exports = {
