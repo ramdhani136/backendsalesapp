@@ -3,8 +3,8 @@ process.env.TZ = timezone;
 
 module.exports = {
   HOST: "localhost",
-  USER: "root",
-  PASSWORD: "",
+  USER: "it",
+  PASSWORD: "!Etms000!",
   DB: "salesapp",
   dialect: "mysql",
   dialectOptions: {
