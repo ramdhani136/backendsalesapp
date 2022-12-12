@@ -847,6 +847,15 @@ const getByName = async (req, res) => {
   });
   if (visits) {
     const buttonaction = await getButtonAction("visit", visits, req);
+    if (visits.dataValues.schedule) {
+
+      const schedule = await db.schedule.findOne({
+        where: { name: visits.dataValues.schedule },
+      });
+      if (schedule) {
+        visits.dataValues.scheduleNotes = schedule.dataValues.notes;
+      }
+    }
     visits.dataValues.action = buttonaction;
     res.status(200).send(visits);
   } else {

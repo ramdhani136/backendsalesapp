@@ -10,7 +10,10 @@ const { paddy } = require("../utils/paddy");
 const { Op } = require("sequelize");
 const { List } = require("whatsapp-web.js");
 const { UpdateExpired } = require("./ScheduleController");
-const { getButtonAction, permissionUpdateAction } = require("./workflowController");
+const {
+  getButtonAction,
+  permissionUpdateAction,
+} = require("./workflowController");
 const CallSheet = db.callsheets;
 
 const newCallSheetById = async (id, userId, type) => {
@@ -358,10 +361,9 @@ const updateCallSheet = async (req, res) => {
       });
       return;
     }
-    req.body.status=permission.data.status
-    req.body.workState=permission.data.workState
+    req.body.status = permission.data.status;
+    req.body.workState = permission.data.workState;
   }
- 
 
   const allData = await newCallSheet(req.userId, "callsheet");
 
@@ -394,7 +396,7 @@ const updateCallSheet = async (req, res) => {
         return;
       }
       if (
-        listSchedule.dataValues.schedule.status !== "1"&&
+        listSchedule.dataValues.schedule.status !== "1" &&
         listSchedule.dataValues.doc !== null &&
         listSchedule.dataValues.doc !== ""
       ) {
@@ -415,7 +417,9 @@ const updateCallSheet = async (req, res) => {
     if (
       schedule &&
       isResult[0].status === "1" &&
-      (req.body.status === "2" || req.body.status === "0" ||req.body.status === "3"  )
+      (req.body.status === "2" ||
+        req.body.status === "0" ||
+        req.body.status === "3")
     ) {
       const listSchedule = await db.listschedule.findOne({
         where: [{ id: schedule }, { id_customer: isResult[0].id_customer }],
@@ -672,6 +676,14 @@ const getByName = async (req, res) => {
   });
   if (callsheets) {
     const buttonaction = await getButtonAction("callsheet", callsheets, req);
+    if (callsheets.dataValues.schedule) {
+      const schedule = await db.schedule.findOne({
+        where: { name: callsheets.dataValues.schedule },
+      });
+      if (schedule) {
+        callsheets.dataValues.scheduleNotes = schedule.dataValues.notes;
+      }
+    }
     callsheets.dataValues.action = buttonaction;
     res.status(200).send(callsheets);
   } else {
