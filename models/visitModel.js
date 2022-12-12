@@ -126,7 +126,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: "0",
     },
     id_listSchedule: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     schedule: {

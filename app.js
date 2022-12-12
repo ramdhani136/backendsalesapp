@@ -18,7 +18,7 @@ const { verifyToken } = require("./middleware/VerifiyToken");
 const io = new Server(server, {
   cors: {
     // origin: "*",
-    origin: ["*", "http://103.56.149.31:3000","http://103.56.149.31"],
+    origin: ["*", "http://localhost:3000","http://localhost"],
     methods: ["GET", "POST"],
     transports: ["websocket", "polling", "flashsocket"],
     allowedHeaders: ["react-client"],
@@ -27,7 +27,7 @@ const io = new Server(server, {
 });
 
 const corsOptions = {
-  origin: ["*", "http://103.56.149.31:3000","http://103.56.149.31"],
+  origin: ["*", "http://localhost:3000","http://localhost"],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -53,7 +53,7 @@ io.on("connection", (socket) => {
 
 module.exports.setEmit = setEmit;
 
-const port = process.env.PORT || 5500;
+const port = process.env.PORT || 5000;
 
 // Import WaBot
 WaBot();

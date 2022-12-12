@@ -75,7 +75,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
     },
     id_listSchedule: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     schedule: {
