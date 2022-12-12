@@ -280,7 +280,7 @@ const getByType = async (req, res) => {
       {
         model: db.schedule,
         as: "schedule",
-        attributes: ["id", "name", "status"],
+        attributes: ["id", "name", "status","notes"],
         where: [
           {
             activeDate: {
@@ -308,6 +308,11 @@ const getByType = async (req, res) => {
                 ],
               },
             ],
+          },
+          {
+            model: db.users,
+            as: "user",
+            attributes: ["name"],
           },
         ],
       },
@@ -360,6 +365,9 @@ const getByType = async (req, res) => {
       id_customer: item.dataValues.id_customer,
       customer: item.dataValues.customer,
       schedule: item.dataValues.schedule.name,
+      notes: item.dataValues.schedule.notes,
+      notes: item.dataValues.schedule.notes,
+      created: item.dataValues.schedule.user.name,
       id_schedule: item.dataValues.id_schedule,
       doc: item.dataValues.doc ? item.dataValues.doc : "",
       type: item.dataValues.type,
