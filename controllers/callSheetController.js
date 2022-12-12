@@ -324,6 +324,14 @@ const getOneCallSheet = async (req, res) => {
   });
   if (callsheets) {
     const buttonaction = await getButtonAction("callsheet", callsheets, req);
+    if (callsheets.dataValues.schedule) {
+      const schedule = await db.schedule.findOne({
+        where: { name: callsheets.dataValues.schedule },
+      });
+      if (schedule) {
+        callsheets.dataValues.scheduleNotes = schedule.dataValues.notes;
+      }
+    }
     callsheets.dataValues.action = buttonaction;
     res.status(200).send(callsheets);
   } else {
