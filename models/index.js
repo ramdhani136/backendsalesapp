@@ -44,6 +44,13 @@ db.actionstate = require("./actionstate")(sequelize, DataTypes);
 db.workflow = require("./workflow")(sequelize, DataTypes);
 db.workflowtransition = require("./workflowtransition")(sequelize, DataTypes);
 
+db.voting = require("./VotingModel")(sequelize, DataTypes);
+db.votingOption = require("./VotingOptionsModel")(sequelize, DataTypes);
+db.votingAudience = require("./VotingAudienceModel")(sequelize, DataTypes);
+db.votingResult = require("./VotingResultModel")(sequelize, DataTypes);
+db.contactGroup = require("./ContactGroupModel")(sequelize, DataTypes);
+db.contactGroupList = require("./ListContactGroupModel")(sequelize, DataTypes);
+
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync!");
 });
