@@ -19,6 +19,7 @@ const {
   permissionUpdateAction,
 } = require("./workflowController");
 const { UpdateExpired } = require("./ScheduleController");
+const { Result } = require("express-validator");
 
 const Visits = db.visits;
 
@@ -856,7 +857,6 @@ const getByName = async (req, res) => {
   if (visits) {
     const buttonaction = await getButtonAction("visit", visits, req);
     if (visits.dataValues.schedule) {
-
       const schedule = await db.schedule.findOne({
         where: { name: visits.dataValues.schedule },
       });
@@ -928,6 +928,130 @@ const getByUser = async (req, res) => {
   }
 };
 
+const countAllData = async (req) => {
+  const isBranch = await permissionBranch(req.userId, "visit");
+  const isCG = await permissionCG(req.userId, "visit");
+  const isCustomer = await permissionCustomer(req.userId, "visit");
+  const isUser = await permissionUser(req.userId, "visit");
+  const isWhere = [
+    isBranch.length > 0 && { id_branch: { [Op.or]: [isBranch, 1000000] } },
+    isCustomer.length > 0 && {
+      id_customer: { [Op.or]: [isCustomer, 1000000] },
+    },
+    isUser.length > 0 && { id_user: isUser },
+  ];
+  let finalWhere = [];
+  if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
+    finalWhere = isWhere;
+  }
+  let data = await Visits.count({
+    where: finalWhere,
+    include: [
+      {
+        model: db.users,
+        as: "user",
+        attributes: ["id", "name", "img", "username", "email", "phone"],
+      },
+      {
+        model: db.branch,
+        as: "branch",
+        attributes: ["id", "name"],
+      },
+      {
+        model: db.customers,
+        as: "customer",
+        attributes: ["id", "name", "type", "id_customerGroup", "status"],
+        where: isCG.length > 0 && {
+          id_customergroup: { [Op.or]: [isCG, 1000000] },
+        },
+        include: [
+          {
+            model: db.customergroup,
+            as: "customergroup",
+            attributes: ["id", "name", "deskripsi", "status"],
+          },
+        ],
+      },
+    ],
+    order: [["id", "DESC"]],
+  });
+  return data;
+};
+
+const getPage = async (req, res) => {
+  const last_id = parseInt(req.query.lastId) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+  const isBranch = await permissionBranch(req.userId, "visit");
+  const isCG = await permissionCG(req.userId, "visit");
+  const isCustomer = await permissionCustomer(req.userId, "visit");
+  const isUser = await permissionUser(req.userId, "visit");
+  const isWhere = [
+    isBranch.length > 0 && { id_branch: { [Op.or]: [isBranch, 1000000] } },
+    isCustomer.length > 0 && {
+      id_customer: { [Op.or]: [isCustomer, 1000000] },
+    },
+    isUser.length > 0 && { id_user: isUser },
+    last_id > 0 && { id: { [Op.lt]: last_id } },
+    {
+      name: {
+        [Op.like]: `%${search}%`,
+      },
+    },
+  ];
+  let finalWhere = [
+    {
+      name: {
+        [Op.like]: `%${search}%`,
+      },
+    },
+    last_id > 0 && { id: { [Op.lt]: last_id } },
+  ];
+  if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
+    finalWhere = isWhere;
+  }
+  let visits = await Visits.findAll({
+    where: finalWhere,
+    include: [
+      {
+        model: db.users,
+        as: "user",
+        attributes: ["id", "name", "img", "username", "email", "phone"],
+      },
+      {
+        model: db.branch,
+        as: "branch",
+        attributes: ["id", "name"],
+      },
+      {
+        model: db.customers,
+        as: "customer",
+        attributes: ["id", "name", "type", "id_customerGroup", "status"],
+        where: isCG.length > 0 && {
+          id_customergroup: { [Op.or]: [isCG, 1000000] },
+        },
+        include: [
+          {
+            model: db.customergroup,
+            as: "customergroup",
+            attributes: ["id", "name", "deskripsi", "status"],
+          },
+        ],
+      },
+    ],
+    order: [["id", "DESC"]],
+    limit: limit,
+  });
+
+  res.status(200).json({
+    lastId: visits.length ? visits[visits.length - 1].id : 0,
+    hasMore: visits.length >= limit ? true : false,
+    total: await countAllData(req),
+    data: visits,
+  
+  });
+};
+
 module.exports = {
   create,
   getAllVisit,
@@ -939,4 +1063,5 @@ module.exports = {
   getByName,
   getByUser,
   newVisit,
+  getPage,
 };

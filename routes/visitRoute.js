@@ -19,6 +19,7 @@ const upload = multer({ storage: storage });
 router.post("/", upload.single("upimg"), visit.create);
 router.get("/", visit.getAllVisit);
 router.get("/view/:name", visit.getByName);
+router.get("/page/", visit.getPage);
 router.get("/:id", visit.getOneVisit);
 router.get("/status/:status", visit.getByStatus);
 router.put("/:id", upload.single("upimg"), visit.updateVisit);
