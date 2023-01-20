@@ -313,4 +313,55 @@ db.workflowtransition.belongsTo(db.workflowstate, {
   as: "nextstate",
 });
 
+// Voting
+db.voting.belongsTo(db.users, {
+  foreignKey: "id_created",
+  as: "user",
+});
+
+// Voting Option
+db.votingOption.belongsTo(db.voting, {
+  foreignKey: "id_voting",
+  as: "voting",
+});
+
+// Voting Result
+db.votingResult.belongsTo(db.voting, {
+  foreignKey: "id_voting",
+  as: "voting",
+});
+
+db.votingResult.belongsTo(db.votingOption, {
+  foreignKey: "id_votingOption",
+  as: "votingOption",
+});
+
+// Voting Audience
+db.votingAudience.belongsTo(db.voting, {
+  foreignKey: "id_voting",
+  as: "voting",
+});
+
+db.votingAudience.belongsTo(db.contact, {
+  foreignKey: "id_contact",
+  as: "contact",
+});
+
+// ContactGroup
+db.contactGroup.belongsTo(db.users, {
+  foreignKey: "id_created",
+  as: "created",
+});
+
+// Contact Group List
+db.contactGroupList.belongsTo(db.contactGroup, {
+  foreignKey: "id_contactGroup",
+  as: "contactGroup",
+});
+
+db.contactGroupList.belongsTo(db.contact, {
+  foreignKey: "id_contact",
+  as: "contact",
+});
+
 module.exports = db;

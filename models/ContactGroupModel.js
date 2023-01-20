@@ -5,11 +5,6 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true,
     },
-    id_contact: {
-      type: DataTypes.INTEGER,
-      index: true,
-      allowNull: false,
-    },
     id_created: {
       type: DataTypes.INTEGER,
       index: true,
