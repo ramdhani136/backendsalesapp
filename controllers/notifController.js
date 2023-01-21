@@ -5,10 +5,14 @@ const callsheet = require("../controllers/callSheetController");
 const Notif = db.notif;
 
 const getAll = async (req, res) => {
+  const last_id = parseInt(req.query.lastId) || 0;
+  const limit = parseInt(req.query.limit) || 5;
+  const search = req.query.search || "";
   const visits = await visit.newVisit(req.userId, "visit");
   const callsheets = await callsheet.newCallSheet(req.userId, "callsheet");
   const nol = [];
   const data = await Notif.findAll({
+    where: [{ status: 0 }],
     include: [
       {
         model: db.users,
