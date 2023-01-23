@@ -986,6 +986,7 @@ const getPage = async (req, res) => {
   const isCG = await permissionCG(req.userId, "visit");
   const isCustomer = await permissionCustomer(req.userId, "visit");
   const isUser = await permissionUser(req.userId, "visit");
+  const filters = req.query.filters ? JSON.parse(req.query.filters) : [];
   const isWhere = [
     isBranch.length > 0 && { id_branch: { [Op.or]: [isBranch, 1000000] } },
     isCustomer.length > 0 && {
@@ -993,63 +994,107 @@ const getPage = async (req, res) => {
     },
     isUser.length > 0 && { id_user: isUser },
     last_id > 0 && { id: { [Op.lt]: last_id } },
-    {
-      name: {
-        [Op.like]: `%${search}%`,
-      },
-    },
   ];
-  let finalWhere = [
-    {
-      name: {
-        [Op.like]: `%${search}%`,
-      },
-    },
-    last_id > 0 && { id: { [Op.lt]: last_id } },
-  ];
+
+  let allfilter = [];
+  if (filters.length > 0) {
+    for (let filter of filters) {
+      let banding;
+      switch (`${filter[1]}`) {
+        case "=":
+          banding = Op.eq;
+          break;
+        case "!=":
+          banding = Op.not;
+          break;
+        case "like":
+          banding = Op.like;
+          break;
+        case "notlike":
+          banding = Op.notLike;
+          break;
+        case ">":
+          banding = Op.gt;
+          break;
+        case ">=":
+          banding = Op.gte;
+          break;
+        case "<":
+          banding = Op.lt;
+          break;
+        case "<=":
+          banding = Op.lte;
+          break;
+        default:
+          banding = Op.eq;
+      }
+
+      let data = {};
+
+      data[filter[0]] = {
+        [banding]:
+          filter[1] === "like" || filter[1] === "notlike"
+            ? `%${filter[2]}%`
+            : `${filter[2]}`,
+      };
+
+      let isduplicate = allfilter.filter((item) => item[`${filter[0]}`]);
+      if (isduplicate.length === 0) {
+        allfilter.push(data);
+      }
+    }
+  }
+
+  let finalWhere = [{}, last_id > 0 && { id: { [Op.lt]: last_id } }];
+
   if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
     finalWhere = isWhere;
   }
-  let visits = await Visits.findAll({
-    where: finalWhere,
-    include: [
-      {
-        model: db.users,
-        as: "user",
-        attributes: ["id", "name", "img", "username", "email", "phone"],
-      },
-      {
-        model: db.branch,
-        as: "branch",
-        attributes: ["id", "name"],
-      },
-      {
-        model: db.customers,
-        as: "customer",
-        attributes: ["id", "name", "type", "id_customerGroup", "status"],
-        where: isCG.length > 0 && {
-          id_customergroup: { [Op.or]: [isCG, 1000000] },
-        },
-        include: [
-          {
-            model: db.customergroup,
-            as: "customergroup",
-            attributes: ["id", "name", "deskripsi", "status"],
-          },
-        ],
-      },
-    ],
-    order: [["id", "DESC"]],
-    limit: limit,
-  });
 
-  res.status(200).json({
-    lastId: visits.length ? visits[visits.length - 1].id : 0,
-    hasMore: visits.length >= limit ? true : false,
-    total: await countAllData(req),
-    data: visits,
-  
-  });
+  finalWhere = [...finalWhere, ...allfilter];
+  try {
+    let visits = await Visits.findAll({
+      where: finalWhere,
+      include: [
+        {
+          model: db.users,
+          as: "user",
+          attributes: ["id", "name", "img", "username", "email", "phone"],
+        },
+        {
+          model: db.branch,
+          as: "branch",
+          attributes: ["id", "name"],
+        },
+        {
+          model: db.customers,
+          as: "customer",
+          attributes: ["id", "name", "type", "id_customerGroup", "status"],
+          where: isCG.length > 0 && {
+            id_customergroup: { [Op.or]: [isCG, 1000000] },
+          },
+          include: [
+            {
+              model: db.customergroup,
+              as: "customergroup",
+              attributes: ["id", "name", "deskripsi", "status"],
+            },
+          ],
+        },
+      ],
+      order: [["id", "DESC"]],
+      limit: limit,
+    });
+
+    res.status(200).json({
+      lastId: visits.length ? visits[visits.length - 1].id : 0,
+      hasMore: visits.length >= limit ? true : false,
+      total: await countAllData(req),
+      data: visits,
+    });
+  } catch (error) {
+    res.status(400).json({ msg: error.parent.code });
+  }
 };
 
 module.exports = {
