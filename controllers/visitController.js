@@ -21,6 +21,8 @@ const {
 const { UpdateExpired } = require("./ScheduleController");
 const { Result } = require("express-validator");
 
+const GetFilter = require("../utils/getFilter");
+
 const Visits = db.visits;
 
 const newVisitById = async (id, userId, type) => {
@@ -981,12 +983,11 @@ const countAllData = async (req) => {
 const getPage = async (req, res) => {
   const last_id = parseInt(req.query.lastId) || 0;
   const limit = parseInt(req.query.limit) || 10;
-  const search = req.query.search || "";
   const isBranch = await permissionBranch(req.userId, "visit");
   const isCG = await permissionCG(req.userId, "visit");
   const isCustomer = await permissionCustomer(req.userId, "visit");
   const isUser = await permissionUser(req.userId, "visit");
-  const filters = req.query.filters ? JSON.parse(req.query.filters) : [];
+
   const isWhere = [
     isBranch.length > 0 && { id_branch: { [Op.or]: [isBranch, 1000000] } },
     isCustomer.length > 0 && {
@@ -996,63 +997,44 @@ const getPage = async (req, res) => {
     last_id > 0 && { id: { [Op.lt]: last_id } },
   ];
 
-  let allfilter = [];
-  if (filters.length > 0) {
-    for (let filter of filters) {
-      let banding;
-      switch (`${filter[1]}`) {
-        case "=":
-          banding = Op.eq;
-          break;
-        case "!=":
-          banding = Op.not;
-          break;
-        case "like":
-          banding = Op.like;
-          break;
-        case "notlike":
-          banding = Op.notLike;
-          break;
-        case ">":
-          banding = Op.gt;
-          break;
-        case ">=":
-          banding = Op.gte;
-          break;
-        case "<":
-          banding = Op.lt;
-          break;
-        case "<=":
-          banding = Op.lte;
-          break;
-        default:
-          banding = Op.eq;
-      }
-
-      let data = {};
-
-      data[filter[0]] = {
-        [banding]:
-          filter[1] === "like" || filter[1] === "notlike"
-            ? `%${filter[2]}%`
-            : `${filter[2]}`,
-      };
-
-      let isduplicate = allfilter.filter((item) => item[`${filter[0]}`]);
-      if (isduplicate.length === 0) {
-        allfilter.push(data);
-      }
-    }
-  }
-
-  let finalWhere = [{}, last_id > 0 && { id: { [Op.lt]: last_id } }];
-
-  if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
-    finalWhere = isWhere;
-  }
-
-  finalWhere = [...finalWhere, ...allfilter];
   try {
+    const filters = req.query.filters ? JSON.parse(req.query.filters) : [];
+    const filterUsers = req.query.filteruser
+      ? JSON.parse(req.query.filteruser)
+      : [];
+    const filterBranchs = req.query.filterbranch
+      ? JSON.parse(req.query.filterbranch)
+      : [];
+    const filterCustomers = req.query.filtercustomer
+      ? JSON.parse(req.query.filtercustomer)
+      : [];
+    const filterCustomerGroups = req.query.filtercustomergroup
+      ? JSON.parse(req.query.filtercustomergroup)
+      : [];
+    let defaultfilter = GetFilter(filters) ? GetFilter(filters) : [];
+    let filterUser = GetFilter(filterUsers) ? GetFilter(filterUsers) : [];
+    let filterBranch = GetFilter(filterBranchs) ? GetFilter(filterBranchs) : [];
+    let filterCustomer = GetFilter(filterCustomers)
+      ? GetFilter(filterCustomers)
+      : [];
+    let filterCustomerGroup = GetFilter(filterCustomerGroups)
+      ? GetFilter(filterCustomerGroups)
+      : [];
+
+    let finalWhere = [{}, last_id > 0 && { id: { [Op.lt]: last_id } }];
+
+    if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
+      finalWhere = isWhere;
+    }
+    finalWhere = [...finalWhere, ...defaultfilter];
+    filterCustomer = [
+      {},
+      isCG.length > 0 && {
+        id_customergroup: { [Op.or]: [isCG, 1000000] },
+      },
+      ...filterCustomer,
+    ];
+
     let visits = await Visits.findAll({
       where: finalWhere,
       include: [
@@ -1060,24 +1042,25 @@ const getPage = async (req, res) => {
           model: db.users,
           as: "user",
           attributes: ["id", "name", "img", "username", "email", "phone"],
+          where: filterUser,
         },
         {
           model: db.branch,
           as: "branch",
           attributes: ["id", "name"],
+          where: filterBranch,
         },
         {
           model: db.customers,
           as: "customer",
           attributes: ["id", "name", "type", "id_customerGroup", "status"],
-          where: isCG.length > 0 && {
-            id_customergroup: { [Op.or]: [isCG, 1000000] },
-          },
+          where: filterCustomer,
           include: [
             {
               model: db.customergroup,
               as: "customergroup",
               attributes: ["id", "name", "deskripsi", "status"],
+              where: filterCustomerGroup,
             },
           ],
         },
@@ -1093,7 +1076,7 @@ const getPage = async (req, res) => {
       data: visits,
     });
   } catch (error) {
-    res.status(400).json({ msg: error.parent.code });
+    res.status(400).json({ msg: "Bad Request" });
   }
 };
 
