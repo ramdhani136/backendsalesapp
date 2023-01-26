@@ -983,6 +983,7 @@ const countAllData = async (req) => {
 const getPage = async (req, res) => {
   const last_id = parseInt(req.query.lastId) || 0;
   const limit = parseInt(req.query.limit) || 10;
+  const search = parseInt(req.query.search) || "";
   const isBranch = await permissionBranch(req.userId, "visit");
   const isCG = await permissionCG(req.userId, "visit");
   const isCustomer = await permissionCustomer(req.userId, "visit");
@@ -1020,7 +1021,10 @@ const getPage = async (req, res) => {
     let filterCustomerGroup = GetFilter(filterCustomerGroups)
       ? GetFilter(filterCustomerGroups)
       : [];
-
+    
+  // let coba = defaultfilter;
+  // console.log(coba)
+  //     return
     let finalWhere = [{}, last_id > 0 && { id: { [Op.lt]: last_id } }];
 
     if (isBranch.length > 0 || isUser.length > 0 || isCustomer.length > 0) {
